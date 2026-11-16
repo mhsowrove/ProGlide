@@ -1,4 +1,4 @@
-PROGLIDE 1.3 COMPACT
+PROGLIDE 1.4 COMPACT
 Developed by MD SOWROVE HOSSAIN
 
 Windows 11 x64. No separate runtime download is required.
@@ -27,3 +27,5 @@ No personal preferences or logs are included in the distributed ZIP.
 
 About includes contact/support links. No payment is processed in the app.
 See LICENSE, THIRD-PARTY-NOTICES.md and PodBattery-LICENSE.txt.
+
+Version 1.4 adds transparent front-view artwork and permanent Left/Right/Case battery cards. Preferences is shorter; name matching expands when needed.

@@ -1,27 +1,21 @@
-# Verified AirPods Pro 3 artwork
+# AirPods Pro 3 artwork provenance — version 1.4
 
-Verified on November 17, 2026 from Apple's current AirPods Pro page:
+Source page: https://www.apple.com/airpods-pro/
 
-https://www.apple.com/airpods-pro/
+Original Apple Pro 3 USDZ model:
+https://www.apple.com/105/media/us/airpods-pro/2025/7acffb13-4adb-40b1-9393-8f1c99bc6c90/ar/airpods-pro.usdz
 
-The page labels the product as AirPods Pro 3. Its charging-case video uses this original source:
+Source SHA-256: e39e77471fb84c60c12d14f5449df4f0f4a0dffc281ba3f7ab1068db13164f2a
 
-https://www.apple.com/105/media/us/airpods-pro/2025/7acffb13-4adb-40b1-9393-8f1c99bc6c90/anim/case/small.mp4
+The app embeds 41 front-view RGBA PNG renders of the original model. Product meshes are not redrawn or AI generated. The camera, studio lighting and hinge/earbud motion are authored for ProGlide. The lid rotates about a rear hinge, while the earbuds lower into the case. Closing reverses the sequence. This is an animation of Apple's original model, not Apple's untouched product movie or private iPhone pairing animation.
 
-Source SHA-256: `c8f67847b5d85fb529090c172db7202762f1489823440c5b78510f962d51e983`
+Frames were rendered at 224x224 with a fixed front-facing camera orientation, gentle vertical centering, a transparent film background, path-traced lighting and denoising. Open, middle and closed poses were visually inspected. Background corner alpha was verified as zero. The app draws these images directly over the active theme; no white tile is painted.
 
-The app embeds 49 frames from the first 2.04 seconds. They are cropped, resized and JPEG-compressed for the popup. They are not redrawn, AI generated, recolored or assembled from an older generation. The source sequence starts with a closed case viewed from above, then opens the lid and raises the earbuds. The app plays these frames forward on connection and in reverse on disconnection. This is Apple's public product animation, not Apple's private iPhone pairing animation.
+The source USDZ is not included in the installer. Blender is a development-only rendering tool and is not an application dependency. The pre-rendered frames are embedded in the executable.
 
-Extraction command:
-
-```text
-ffmpeg -i Apple-Pro3-Case-original.mp4 -t 2.04 -vf "fps=24,crop=480:480:201:70,scale=192:192" -q:v 3 Pro3CaseFrame%03d.jpg
-```
-
-The app/tray icon and small product images use this separate original Pro 3 asset, also referenced on that page with AirPods Pro 3 alternative text:
-
+The app/tray icon still uses this separate original Pro 3 product asset:
 https://www.apple.com/v/airpods-pro/t/images/overview/battery/case__b87ou7jna9de_large.png
 
-Source SHA-256: `4c09848596c99626d9f818cc408f0a394a93a4543efb118b726f45478b2df318`
+Source SHA-256: 4c09848596c99626d9f818cc408f0a394a93a4543efb118b726f45478b2df318
 
-The earlier custom WPF case illustration and first-generation icon asset are no longer used. Apple retains all rights to its artwork. These images are excluded from the application code's MIT license. See THIRD-PARTY-NOTICES.md.
+Apple retains rights to the model and imagery; those assets are excluded from the code's MIT license. Version 1.3's top-down movie frames are no longer used.

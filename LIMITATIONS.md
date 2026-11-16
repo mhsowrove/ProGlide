@@ -1,4 +1,4 @@
-# Limitations and verification — ProGlide 1.3 Compact
+# Limitations and verification — ProGlide 1.4 Compact
 
 Verified locally on Windows 11 x64. The app targets the .NET Framework 4.8 already supplied with Windows; no .NET 8 runtime is distributed. The single executable embeds its artwork. A separate clean PC was not available.
 
@@ -8,7 +8,7 @@ Verified locally on Windows 11 x64. The app targets the .NET Framework 4.8 alrea
 - Connection/disconnection is detected through active playback endpoints, not actual physical case lid or ear placement. Bluetooth driver timing can delay events.
 - Default playback changes use undocumented Windows IPolicyConfig for console, multimedia and communications roles. Partial role changes are possible on failure; per-app pinned outputs and exclusive streams can ignore default switching.
 - The popup uses the primary display's work area. Secondary displays, unusually high DPI and high-contrast modes require further manual testing.
-- Original Pro 3 product-animation frames were verified directly against Apple's page and source movie. Cropping/resizing preserves the product design. The source's closed-case view is top-down. This is not Apple's iPhone pairing animation. No physical lid telemetry is read.
+- Original Pro 3 geometry was imported from Apple's USDZ model and rendered from a front-facing camera with true transparency. Lighting and hinge motion are app-authored. This is not an untouched Apple animation. No physical lid telemetry is read.
 - The animation can be turned off. Theme changes preview instantly and only persist on Save.
 
 ## Battery

@@ -19,7 +19,7 @@ try {
         if (!$union) { throw 'Windows Bluetooth API build metadata is absent. Build on Windows 11 or install the Windows SDK.' }
         $lines += '/r:"' + $union.FullName + '"'
     }
-    $lines += @('Audio.cs','Program.cs','Diagnostics.cs','Theme.cs','About.cs','AirPodsCase.cs','Battery.cs','AssemblyInfo.cs') | ForEach-Object { '"' + (Join-Path $root $_) + '"' }
+    $lines += @('Audio.cs','Program.cs','Diagnostics.cs','Theme.cs','About.cs','AirPodsCase.cs','Battery.cs','BatteryView.cs','AssemblyInfo.cs') | ForEach-Object { '"' + (Join-Path $root $_) + '"' }
     foreach ($asset in (Get-ChildItem (Join-Path $root 'Assets') -File | Where-Object { $_.Extension -in '.png','.jpg','.ico','.txt' })) { $lines += '/resource:"' + $asset.FullName + '",ProGlide.Assets.' + $asset.Name }
     $lines | Set-Content $response -Encoding UTF8
     & $compiler /noconfig ('@' + $response)

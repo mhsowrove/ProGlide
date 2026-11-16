@@ -1,6 +1,6 @@
-PASS: compact offline installer installed into a verified workspace test directory.
-PASS: no Runtime or external Assets folder required.
-PASS: the installed single executable passed Core Audio diagnostics.
+PASS: version 1.4 temporary install and Core Audio diagnostics.
 PASS: test uninstaller removed the app.
-PASS: existing user preferences stayed byte-for-byte unchanged.
-PASS: upgraded the installed app, removed its old bundled runtime and preserved preferences.
+PASS: actual installed copy updated successfully.
+PASS: user preferences preserved byte-for-byte.
+PASS: transparent RGBA artwork and both theme previews visually inspected.
+PASS: opening and closing animations reached final states.

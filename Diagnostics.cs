@@ -97,7 +97,7 @@ namespace AirPodsSwitch
             view.Animate = false;
             view.Status.Text = connected ? "Choose where your next moment plays." : "Connect your AirPods, or keep listening on your PC.";
             view.SetConnection(connected);
-            view.Battery.Text = "Battery · Open the case nearby to refresh";
+            view.Batteries.Update(null, true, "Waiting for nearby AirPods…");
             view.Outputs.Children.Add(Theme.Device("AirPods", connected ? "Playing here · AirPods Pro" : "Connect your AirPods to use this output", true, connected, connected, () => { }));
             view.Outputs.Children.Add(Theme.Device("PC speakers", connected ? "Speakers (Realtek Audio)" : "Playing here · Speakers (Realtek Audio)", false, !connected, true, () => { }));
             var preferences = Theme.IconButton("Preferences", "\uE713", () => { }); preferences.Width = 160; preferences.Margin = new System.Windows.Thickness(0, 0, 8, 0); view.Footer.Children.Add(preferences);

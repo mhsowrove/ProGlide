@@ -29,7 +29,7 @@ PayPal and bKash retain their respective logo and trademark rights. The logos id
 
 https://www.apple.com/v/airpods-pro/t/images/overview/battery/case__b87ou7jna9de_large.png
 
-The case-animation frames are extracted from Apple's original Pro 3 movie:
+Version 1.3 used this original Pro 3 movie (no longer used by 1.4):
 
 https://www.apple.com/105/media/us/airpods-pro/2025/7acffb13-4adb-40b1-9393-8f1c99bc6c90/anim/case/small.mp4
 
@@ -40,3 +40,5 @@ See ARTWORK-PROVENANCE.md for source hashes and the crop/resize command. The cas
 ## Microsoft .NET runtime
 
 Older 1.2 releases bundled a Microsoft .NET 8 runtime with its own notices. The compact 1.3 release distributes no runtime; it uses the .NET Framework and Windows APIs supplied with Windows 11.
+
+Version 1.4 instead renders Apple's original Pro 3 USDZ model from a front-facing camera. See ARTWORK-PROVENANCE.md for the source, hash and distinction between the original model and app-authored motion.

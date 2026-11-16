@@ -1,10 +1,10 @@
-# ProGlide 1.3 Compact
+# ProGlide 1.4 Compact
 
 A small Windows 11 x64 tray app for AirPods audio switching, connection popups, and nearby AirPods battery broadcasts.
 
 ## Downloads and running
 
-- **ProGlide-1.3-Compact-Setup.exe**: offline per-user installer, Start menu/desktop shortcuts, optional startup and Windows uninstaller.
+- **ProGlide-1.4-Compact-Setup.exe**: offline per-user installer, Start menu/desktop shortcuts, optional startup and Windows uninstaller.
 - **ProGlide.exe**: the app itself, with all icons and artwork embedded. This single file can run directly and be shared.
 - **ProGlide-Compact-Portable.zip**: the app, licenses and a portable-mode marker. Extract first; settings stay in its Data folder.
 
@@ -61,10 +61,14 @@ The battery test runs for 20 seconds. Diagnostics does not switch audio by defau
 
 ## Technical limits and storage
 
-Detection uses active Windows playback endpoints, with notification debounce plus a recovery scan. It is not physical case-lid or ear-placement detection. The case animation plays cropped/resized frames from Apple's verified original AirPods Pro 3 product movie, forward or backward. It is not the private iPhone pairing animation. See ARTWORK-PROVENANCE.md for original URLs and source hashes.
+Detection uses active Windows playback endpoints, with notification debounce plus a recovery scan. It is not physical case-lid or ear-placement detection. The front-facing animation is rendered from Apple's original Pro 3 USDZ geometry with an app-authored hinge motion, camera and lighting. Frames have true alpha transparency, with no white image tile. It is not Apple's private pairing animation or an untouched Apple movie. See ARTWORK-PROVENANCE.md.
 
 Default playback switching affects console, multimedia and communications roles through undocumented IPolicyConfig. Windows updates can affect it; partial role changes are reported. Per-app routing and exclusive audio can ignore the default change. No microphone settings are changed. Disconnecting offers speakers rather than forcing a fallback.
 
 Installed/direct-exe settings: %LOCALAPPDATA%\AirPodsSwitch\settings.xml. The historical folder/value name preserves compatibility. A portable.flag beside the EXE instead uses Data beside the app. Error logs stay local and are not size-capped. Do not include Data when sharing a used portable copy. Startup uses the current user's Run value AirPodsSwitch.
 
 The app is unsigned and targets Windows 11 x64. No clean second PC or fresh Windows account was available for validation. See RELEASE-NOTES.md and local test reports for actual verification. The original code is MIT licensed; artwork and protocol references have separate notices in THIRD-PARTY-NOTICES.md.
+
+## Compact controls and battery cards (1.4)
+
+Preferences uses a shorter fixed-height window with expandable name matching and a shared About/Save footer. Battery states always appear as Left earbud, Right earbud and Case cards. Missing/expired values show a dash; scanning-off and unavailable states are explicit. Valid partial updates retain recent values from the same advertiser for up to 60 seconds, with per-component freshness.

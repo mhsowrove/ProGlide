@@ -11,6 +11,7 @@ namespace AirPodsSwitch
         public int Left = -1, Right = -1, Case = -1;
         public bool LeftCharging, RightCharging, CaseCharging;
         public DateTime Seen;
+        public DateTime LeftSeen, RightSeen, CaseSeen;
         public short Signal;
         public string Model;
         static string Value(int value, bool charging) { return value < 0 ? "—" : value + "%" + (charging ? " ⚡" : ""); }
@@ -55,6 +56,13 @@ namespace AirPodsSwitch
                         if (!enabled) return;
                         // Broadcast addresses can rotate. This cannot prove ownership of the nearby pair.
                         if (latest != null && address != args.BluetoothAddress && (DateTime.UtcNow - latest.Seen).TotalSeconds < 10 && reading.Signal < latest.Signal + 8) continue;
+                        if (latest != null && address == args.BluetoothAddress && latest.Model == reading.Model)
+                        {
+                            var now = DateTime.UtcNow;
+                            if (reading.Left < 0 && (now - latest.LeftSeen).TotalSeconds <= 60) { reading.Left = latest.Left; reading.LeftSeen = latest.LeftSeen; reading.LeftCharging = latest.LeftCharging; }
+                            if (reading.Right < 0 && (now - latest.RightSeen).TotalSeconds <= 60) { reading.Right = latest.Right; reading.RightSeen = latest.RightSeen; reading.RightCharging = latest.RightCharging; }
+                            if (reading.Case < 0 && (now - latest.CaseSeen).TotalSeconds <= 60) { reading.Case = latest.Case; reading.CaseSeen = latest.CaseSeen; reading.CaseCharging = latest.CaseCharging; }
+                        }
                         latest = reading; address = args.BluetoothAddress;
                     }
                 }
@@ -63,7 +71,17 @@ namespace AirPodsSwitch
         }
         public BatteryReading Current()
         {
-            lock (gate) return enabled && latest != null && (DateTime.UtcNow - latest.Seen).TotalSeconds <= 60 ? latest : null;
+            lock (gate)
+            {
+                if (!enabled || latest == null || (DateTime.UtcNow - latest.Seen).TotalSeconds > 60) return null;
+                var now = DateTime.UtcNow;
+                return new BatteryReading { Model = latest.Model, Signal = latest.Signal, Seen = latest.Seen,
+                    Left = (now - latest.LeftSeen).TotalSeconds <= 60 ? latest.Left : -1,
+                    Right = (now - latest.RightSeen).TotalSeconds <= 60 ? latest.Right : -1,
+                    Case = (now - latest.CaseSeen).TotalSeconds <= 60 ? latest.Case : -1,
+                    LeftCharging = latest.LeftCharging, RightCharging = latest.RightCharging, CaseCharging = latest.CaseCharging,
+                    LeftSeen = latest.LeftSeen, RightSeen = latest.RightSeen, CaseSeen = latest.CaseSeen };
+            }
         }
         public static BatteryReading Decode(byte[] data, short signal)
         {
@@ -85,6 +103,9 @@ namespace AirPodsSwitch
                 LeftCharging = (charging & (swapped ? 2 : 1)) != 0, RightCharging = (charging & (swapped ? 1 : 2)) != 0, CaseCharging = (charging & 4) != 0,
                 Seen = DateTime.UtcNow, Signal = signal
             };
+            result.LeftSeen = result.Left >= 0 ? result.Seen : DateTime.MinValue;
+            result.RightSeen = result.Right >= 0 ? result.Seen : DateTime.MinValue;
+            result.CaseSeen = result.Case >= 0 ? result.Seen : DateTime.MinValue;
             return result.Left < 0 && result.Right < 0 && result.Case < 0 ? null : result;
         }
         static int Percent(int value) { return value <= 10 ? value * 10 : -1; }

@@ -8,8 +8,8 @@
 [Setup]
 AppId={{67D68F1D-7E6C-420D-BAF6-A8410DBB4F58}
 AppName=ProGlide
-AppVersion=1.3.0
-AppVerName=ProGlide 1.3
+AppVersion=1.4.0
+AppVerName=ProGlide 1.4
 AppPublisher=MD SOWROVE HOSSAIN
 AppPublisherURL=https://www.facebook.com/mhsowrove
 AppSupportURL=mailto:mhsowrove@gmail.com
@@ -20,7 +20,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.22000
 OutputDir={#ReleaseDir}
-OutputBaseFilename=ProGlide-1.3-Compact-Setup
+OutputBaseFilename=ProGlide-1.4-Compact-Setup
 SetupIconFile=..\Assets\PodGlide.ico
 UninstallDisplayIcon={app}\ProGlide.exe
 WizardStyle=modern

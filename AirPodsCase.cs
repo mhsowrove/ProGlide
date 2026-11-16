@@ -6,21 +6,21 @@ using System.Windows.Media.Imaging;
 
 namespace AirPodsSwitch
 {
-    // Frames extracted from Apple's verified AirPods Pro 3 case movie.
-    // See ARTWORK-PROVENANCE.md. No product geometry is redrawn or generated.
+    // Transparent front-camera renders of Apple's original AirPods Pro 3 USDZ model.
+    // The model is original; camera, lighting and the hinge animation are app-authored.
     public sealed class AirPodsCase : FrameworkElement
     {
         public static readonly DependencyProperty OpenProgressProperty = DependencyProperty.Register("OpenProgress", typeof(double), typeof(AirPodsCase), new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsRender));
         public double OpenProgress { get { return (double)GetValue(OpenProgressProperty); } set { SetValue(OpenProgressProperty, value); } }
-        const int FrameCount = 49;
+        const int FrameCount = 41;
         static readonly BitmapImage[] frames = LoadFrames();
         static BitmapImage[] LoadFrames()
         {
             var result = new BitmapImage[FrameCount];
-            for (int i = 0; i < FrameCount; i++) result[i] = Theme.Asset("Pro3CaseFrame" + (i + 1).ToString("D3") + ".jpg");
+            for (int i = 0; i < FrameCount; i++) result[i] = Theme.Asset("Pro3FrontFrame" + (i + 1).ToString("D3") + ".png");
             return result;
         }
-        public AirPodsCase() { Width = 200; Height = 180; }
+        public AirPodsCase() { Width = 224; Height = 224; }
         public void Present(bool connected, bool animate, bool transition)
         {
             double destination = connected ? 1 : 0;
@@ -33,9 +33,7 @@ namespace AirPodsSwitch
         {
             base.OnRender(drawing);
             int index = (int)Math.Round(Math.Max(0, Math.Min(1, OpenProgress)) * (FrameCount - 1));
-            var bounds = new Rect(10, 0, 180, 180);
-            drawing.PushClip(new RectangleGeometry(bounds, 20, 20));
-            drawing.DrawImage(frames[index], bounds); drawing.Pop();
+            drawing.DrawImage(frames[index], new Rect(0, 0, 224, 224));
         }
     }
 }

@@ -17,7 +17,7 @@ namespace AirPodsSwitch
             Content = new ScrollViewer { Content = stack, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
             var art = Theme.Product(94); art.HorizontalAlignment = HorizontalAlignment.Center; stack.Children.Add(art);
             var title = Theme.Text("ProGlide", 32, Theme.Ink); title.FontWeight = FontWeights.SemiBold; title.TextAlignment = TextAlignment.Center; stack.Children.Add(title);
-            var subtitle = Theme.Text("Your sound, one tap away.  ·  Version 1.3", 12, Theme.Muted); subtitle.TextAlignment = TextAlignment.Center; subtitle.Margin = new Thickness(0, 6, 0, 23); stack.Children.Add(subtitle);
+            var subtitle = Theme.Text("Your sound, one tap away.  ·  Version 1.4", 12, Theme.Muted); subtitle.TextAlignment = TextAlignment.Center; subtitle.Margin = new Thickness(0, 6, 0, 23); stack.Children.Add(subtitle);
             var credit = new StackPanel { Margin = new Thickness(16) };
             credit.Children.Add(Theme.Text("DESIGNED & DEVELOPED BY", 10, Theme.Muted));
             var name = Theme.Text("MD SOWROVE HOSSAIN", 17, Theme.Ink); name.FontWeight = FontWeights.SemiBold; name.Margin = new Thickness(0, 7, 0, 0); credit.Children.Add(name);
