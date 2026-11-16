@@ -1,0 +1,5 @@
+PASS: single-file offline setup installed into a workspace test folder.
+PASS: bundled-runtime audio diagnostics succeeded.
+PASS: installed copy uses user preferences, not portable.flag.
+PASS: uninstaller removed the test app.
+PASS: existing user preferences preserved byte-for-byte.

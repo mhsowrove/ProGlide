@@ -1,5 +1,7 @@
 PODGLIDE — Your sound, one tap away
 
+Version 1.2 · Developed by MD SOWROVE HOSSAIN
+
 Windows 11 x64. No .NET installation required.
 
 1. Extract the WHOLE ZIP into a folder you can write to.
@@ -28,6 +30,10 @@ AirPods Pro product image. See THIRD-PARTY-NOTICES.md.
 Known limits: detects active Windows audio outputs, not case opening or
 ear placement. Default switching uses an undocumented Windows interface.
 Per-app pinned audio outputs can ignore it. No battery telemetry.
+
+Preferences includes a separate connection-animation toggle. Turn it off
+for reduced motion. About contains email, Facebook and optional donation
+links; no payment is processed inside the app.
 
 To remove: disable launch at sign-in in Preferences if enabled, Exit from
 the tray menu, then delete the extracted folder.

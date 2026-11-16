@@ -13,7 +13,7 @@ $references = Get-ChildItem $core.FullName,$desktop.FullName -Filter *.dll | Whe
 $response = Join-Path $env:TEMP ('AirPodsSwitch-' + [guid]::NewGuid() + '.rsp')
 try {
     $lines = @('/nologo','/target:winexe','/platform:x64','/nostdlib+',('/out:"' + (Join-Path $root 'AirPodsSwitch.dll') + '"'),('/win32manifest:"' + (Join-Path $root 'app.manifest') + '"')) + $references
-    $lines += @('Audio.cs','Program.cs','Diagnostics.cs','Theme.cs') | ForEach-Object { '"' + (Join-Path $root $_) + '"' }
+    $lines += @('Audio.cs','Program.cs','Diagnostics.cs','Theme.cs','About.cs') | ForEach-Object { '"' + (Join-Path $root $_) + '"' }
     $lines += '/win32icon:"' + (Join-Path $root 'Assets\PodGlide.ico') + '"'
     $lines | Set-Content $response -Encoding UTF8
     & $compiler /noconfig ('@' + $response)

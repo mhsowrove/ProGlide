@@ -31,6 +31,18 @@ namespace AirPodsSwitch
         {
             return new TextBlock { Text = text, FontSize = size, Foreground = foreground, TextWrapping = TextWrapping.Wrap };
         }
+        public static TextBlock Glyph(string code, double size)
+        {
+            return new TextBlock { Text = code, FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = size, VerticalAlignment = VerticalAlignment.Center, Foreground = Mint };
+        }
+        public static Button IconButton(string text, string glyph, Action action)
+        {
+            var button = Button(text, action, false);
+            var panel = new StackPanel { Orientation = Orientation.Horizontal };
+            var icon = Glyph(glyph, 15); icon.Margin = new Thickness(0, 0, 9, 0); panel.Children.Add(icon);
+            panel.Children.Add(new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center }); button.Content = panel;
+            System.Windows.Automation.AutomationProperties.SetName(button, text); return button;
+        }
         public static BitmapImage ProductImage()
         {
             var image = new BitmapImage(); image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad;
@@ -44,7 +56,7 @@ namespace AirPodsSwitch
                 "<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' TargetType='ComboBox'>" +
                 "<Grid><ToggleButton Focusable='False' IsChecked='{Binding IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}'>" +
                 "<ToggleButton.Template><ControlTemplate TargetType='ToggleButton'><Border Background='#1B232B' BorderBrush='#34434E' BorderThickness='1' CornerRadius='10'/></ControlTemplate></ToggleButton.Template></ToggleButton>" +
-                "<DockPanel Margin='12,11' IsHitTestVisible='False'><TextBlock DockPanel.Dock='Right' Text='⌄' Foreground='#9BE4C5' Margin='10,0,0,0'/>" +
+                "<DockPanel Margin='12,11' IsHitTestVisible='False'><Path DockPanel.Dock='Right' Data='M 0 0 L 5 5 L 10 0' Stroke='#9BE4C5' StrokeThickness='1.6' StrokeStartLineCap='Round' StrokeEndLineCap='Round' Width='11' Height='7' Stretch='Uniform' VerticalAlignment='Center' Margin='12,0,0,0'/>" +
                 "<ContentPresenter Content='{TemplateBinding SelectionBoxItem}' ContentTemplate='{TemplateBinding SelectionBoxItemTemplate}' VerticalAlignment='Center'/></DockPanel>" +
                 "<Popup x:Name='PART_Popup' Placement='Bottom' IsOpen='{TemplateBinding IsDropDownOpen}' AllowsTransparency='True' Focusable='False' PopupAnimation='Fade'>" +
                 "<Border Background='#1B232B' BorderBrush='#42564D' BorderThickness='1' CornerRadius='10' Padding='6' Margin='0,4,0,0' MinWidth='{Binding ActualWidth,RelativeSource={RelativeSource TemplatedParent}}'>" +

@@ -1,5 +1,13 @@
 # Third-party material
 
+## Donation provider logos
+
+PayPal logo: https://www.paypalobjects.com/webstatic/icon/pp258.png
+
+bKash logo mirror: https://raw.githubusercontent.com/mdmubarokhosin/Bd-MFS-Logo/refs/heads/main/logos/png/bkash.png
+
+PayPal and bKash retain their respective logo and trademark rights. The logos identify the user's chosen donation methods; they do not imply endorsement and are excluded from the code's MIT license. No payment is processed within PodGlide. The bKash button copies a number, while the PayPal button opens the supplied PayPal.me link.
+
 ## AirPods product artwork
 
 `Assets/AirPodsPro.png` is Apple's original AirPods Pro product image, downloaded from:

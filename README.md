@@ -1,5 +1,21 @@
 # PodGlide — Your sound, one tap away
 
+## Standalone Windows installer (version 1.2)
+
+Run **PodGlide-1.2-Setup-Windows-x64.exe**. It installs for the current user, includes the required x64 .NET runtime, creates shortcuts, offers optional sign-in startup, and provides a Windows uninstaller. No separate runtime download is required. Existing preferences are retained during an upgrade. The package is unsigned.
+
+The popup includes icon buttons for Preferences, Sound settings and About. The About panel credits **MD SOWROVE HOSSAIN**, with the supplied email and Facebook links, plus optional bKash and PayPal support buttons. bKash copies the supplied number; PayPal opens the supplied PayPal.me URL. PodGlide does not initiate or process payments.
+
+The spring-style reveal is inspired by the iPhone AirPods connection card; it is a 2D Windows effect, not Apple's exact 3D animation. Use **Animate connection popup** in Preferences to disable it for reduced motion. This app-specific preference does not change Windows animation settings. Windows controls the system tray icon's physical slot size; the artwork has been cropped tighter to fill it more clearly.
+
+Installer source: `BuildSupport/PodGlide.iss`. To rebuild using this machine's runtime/legacy-compiler route and an installed official Inno Setup compiler:
+
+```powershell
+.\BuildSupport\build-installer.ps1 -CompilerPath 'C:\Path\To\Inno Setup 6\ISCC.exe'
+```
+
+See `INSTALLER-TEST.txt` and `ANIMATION-TEST.txt` for local integration-test results. No clean second PC or fresh Windows account was available for testing.
+
 A Windows 11 x64, C# .NET 8 WPF tray application. No third-party packages, account, administrator rights, or background network access are required.
 
 ## Portable release

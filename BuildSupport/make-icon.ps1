@@ -10,7 +10,8 @@ try {
         $stream = [IO.MemoryStream]::new()
         try {
             $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-            $graphics.DrawImage($source,0,0,$size,$size)
+            # Remove excess transparent margins so the artwork fills a standard tray slot.
+            $graphics.DrawImage($source,[System.Drawing.Rectangle]::new(0,0,$size,$size),[System.Drawing.Rectangle]::new(41,26,430,430),[System.Drawing.GraphicsUnit]::Pixel)
             $bitmap.Save($stream,[System.Drawing.Imaging.ImageFormat]::Png)
             $frames += [pscustomobject]@{ Size=$size; Bytes=$stream.ToArray() }
         } finally { $stream.Dispose(); $graphics.Dispose(); $bitmap.Dispose() }
