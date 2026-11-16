@@ -1,74 +1,109 @@
-# ProGlide 1.4 Compact
+# ProGlide
 
-A small Windows 11 x64 tray app for AirPods audio switching, connection popups, and nearby AirPods battery broadcasts.
+**Your sound, one tap away.**
 
-## Downloads and running
-
-- **ProGlide-1.4-Compact-Setup.exe**: offline per-user installer, Start menu/desktop shortcuts, optional startup and Windows uninstaller.
-- **ProGlide.exe**: the app itself, with all icons and artwork embedded. This single file can run directly and be shared.
-- **ProGlide-Compact-Portable.zip**: the app, licenses and a portable-mode marker. Extract first; settings stay in its Data folder.
-
-No .NET 8 download, bundled runtime, service, driver, or third-party runtime package is required. The compact build targets the **.NET Framework 4.8 already included with Windows 11**, and uses built-in Windows Bluetooth APIs. It is not independent of Windows' system components. Earlier 63 MB installers included the entire .NET 8 runtime; this version does not.
-
-Exit another running copy before launching. Open the AirPods tray icon and Preferences, connect your AirPods in Windows, then select the AirPods and speaker outputs. Reopen Preferences to refresh selectors after connecting hardware. New installs default to name detection and leave auto-switch/startup off; existing audio preferences are preserved on upgrade.
+A lightweight Windows 11 tray app for AirPods Pro, with quick audio switching, connection animations, and nearby battery monitoring.
 
 ## Features
 
-- Connection: closed-to-open lid animation and green connected badge.
-- Disconnection: open-to-closed animation and red disconnected badge. An already-offline popup starts closed.
-- ProGlide name paired with the AirPods icon, plus Preferences, Sound settings and About buttons.
-- Light and Dark themes preview instantly. Save persists the selection; closing without saving restores the saved theme.
-- Separate animation and battery-monitoring toggles in Preferences.
-- About credits MD SOWROVE HOSSAIN, with supplied Gmail, Facebook, bKash and PayPal links. bKash copies a number; PayPal opens a link. The app processes no payments.
+- Switch playback between AirPods and PC speakers.
+- Show a bottom-right popup when AirPods audio connects or disconnects.
+- Transparent, front-facing AirPods Pro 3 opening and closing animations.
+- Green connected and red disconnected indicators.
+- Light and dark themes.
+- Separate Left, Right, and Case battery cards.
+- Optional automatic switching and launch at sign-in.
+- Compact executable with embedded artwork.
 
-## Battery readings
+## Requirements
 
-The app passively reads recognized AirPods manufacturer broadcasts through Windows' Bluetooth LE watcher. Left, right and case levels appear when present, with charging flags, in **10% steps**. A dash means the packet did not include that level. Readings expire after 60 seconds. Open the case close to the PC to encourage new broadcasts.
+- Windows 11, x64.
+- Bluetooth connectivity for AirPods.
+- Bluetooth Low Energy support for battery monitoring.
 
-Broadcasts have rotating addresses and do not prove ownership. The UI labels them **nearby AirPods battery**; another nearby pair can be selected. Unknown models and weak/malformed packets are ignored. Bluetooth scanning can be disabled. No Bluetooth addresses are saved, and no data is sent over the internet. Firmware, Bluetooth adapter and broadcast availability affect compatibility.
+ProGlide uses the **.NET Framework 4.8 included with Windows 11**. No separate .NET 8 runtime, driver, or background service is required.
 
-A local 20-second test observed a nearby AirPods Pro 3 packet with right earbud 90%, while left/case were absent. That was an actual broadcast, not a guarantee about the user's paired device. See BATTERY-TEST.txt.
+## Installation
 
-## Build without an SDK
+Download the installer from this repository’s **Releases** section once a release is published, then run it.
 
-On Windows 11, run in PowerShell:
+For portable use, extract the portable ZIP and launch `ProGlide.exe`. Keep `portable.flag` beside the executable to store preferences in the local `Data` folder.
+
+You can also run the single `ProGlide.exe` directly.
+
+## Setup
+
+1. Connect your AirPods through Windows Bluetooth settings.
+2. Click the ProGlide icon in the system tray.
+3. Open **Preferences**.
+4. Select your AirPods output and PC speakers.
+5. Choose your theme and optional settings, then save.
+
+If a device is missing, connect it and reopen Preferences.
+
+## Battery monitoring
+
+The battery cards display nearby AirPods broadcasts when available.
+
+- Levels arrive in **10% steps**.
+- **—** means no recent reading for that component, not zero battery.
+- Recent component readings expire after 60 seconds.
+- Open the case near your PC to encourage fresh readings.
+- Battery scanning can be disabled in Preferences.
+
+**Device ownership is unverified.** Another nearby pair may be detected. Firmware and Bluetooth adapter support can affect availability. ProGlide does not save Bluetooth addresses or upload readings.
+
+## Animation and artwork
+
+The animation is rendered from Apple’s original **AirPods Pro 3 3D model**, with a front-facing camera and transparent background.
+
+The camera, lighting, and opening/closing motion are authored for ProGlide. It is **not Apple’s official iPhone pairing animation**.
+
+See [ARTWORK-PROVENANCE.md](ARTWORK-PROVENANCE.md) and [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for sources and attribution.
+
+## Build from source
+
+On Windows 11, open PowerShell in the source folder and run:
 
 ```powershell
 .\build.ps1
 ```
 
-This uses the Windows C# compiler and .NET Framework/WPF/WinRT metadata already installed on Windows 11. Produces ProGlide.exe. Exit the running app first if rebuilding that same copy. No NuGet packages are used.
+This produces `ProGlide.exe` using the Windows C# compiler. No NuGet packages are used.
 
-An SDK project targeting net48 is also provided for development, but the verified build here used build.ps1, not an SDK.
-
-To build the compact installer with the official Inno Setup compiler:
+To build the installer, install Inno Setup and run:
 
 ```powershell
-.\BuildSupport\build-installer.ps1 -CompilerPath 'C:\Path\To\Inno Setup 6\ISCC.exe'
+.\BuildSupport\build-installer.ps1 -CompilerPath "C:\Path\To\Inno Setup 6\ISCC.exe"
 ```
 
-## Diagnostics
+## Limitations
 
-```powershell
-# Wait for these GUI executables to finish before reading their reports.
-Start-Process .\ProGlide.exe -ArgumentList '--diagnose --report diagnostics.txt' -Wait
-Start-Process .\ProGlide.exe -ArgumentList '--test-animation --report opening.txt' -Wait
-Start-Process .\ProGlide.exe -ArgumentList '--test-animation --disconnect --report closing.txt' -Wait
-Start-Process .\ProGlide.exe -ArgumentList '--battery-scan --report battery.txt' -Wait
-```
+- Connection detection follows active Windows audio endpoints, not physical case-lid movement or ear placement.
+- Default-device switching uses an undocumented Windows interface and may be affected by Windows updates.
+- Apps with pinned audio outputs or exclusive playback may ignore default-device changes.
+- Battery readings may be incomplete or unavailable.
+- The app and installer are unsigned.
+- Local testing passed; a clean second PC was not available for verification.
 
-The battery test runs for 20 seconds. Diagnostics does not switch audio by default. Optional --test-current-switch re-selects the existing device only if all three roles already agree. Render helpers --render-test, --render-preferences and --render-about accept --report image.png and --light. Render samples are illustrations, not hardware observations.
+See [LIMITATIONS.md](LIMITATIONS.md) for details.
 
-## Technical limits and storage
+## Developer
 
-Detection uses active Windows playback endpoints, with notification debounce plus a recovery scan. It is not physical case-lid or ear-placement detection. The front-facing animation is rendered from Apple's original Pro 3 USDZ geometry with an app-authored hinge motion, camera and lighting. Frames have true alpha transparency, with no white image tile. It is not Apple's private pairing animation or an untouched Apple movie. See ARTWORK-PROVENANCE.md.
+**MD SOWROVE HOSSAIN**
 
-Default playback switching affects console, multimedia and communications roles through undocumented IPolicyConfig. Windows updates can affect it; partial role changes are reported. Per-app routing and exclusive audio can ignore the default change. No microphone settings are changed. Disconnecting offers speakers rather than forcing a fallback.
+- [Email](mailto:mhsowrove@gmail.com)
+- [Facebook](https://www.facebook.com/mhsowrove)
 
-Installed/direct-exe settings: %LOCALAPPDATA%\AirPodsSwitch\settings.xml. The historical folder/value name preserves compatibility. A portable.flag beside the EXE instead uses Data beside the app. Error logs stay local and are not size-capped. Do not include Data when sharing a used portable copy. Startup uses the current user's Run value AirPodsSwitch.
+### Support development
 
-The app is unsigned and targets Windows 11 x64. No clean second PC or fresh Windows account was available for validation. See RELEASE-NOTES.md and local test reports for actual verification. The original code is MIT licensed; artwork and protocol references have separate notices in THIRD-PARTY-NOTICES.md.
+- **bKash:** `01925070109`
+- [PayPal](https://www.paypal.com/paypalme/mhsowrove)
 
-## Compact controls and battery cards (1.4)
+Donations are optional. ProGlide does not process payments inside the app.
 
-Preferences uses a shorter fixed-height window with expandable name matching and a shared About/Save footer. Battery states always appear as Left earbud, Right earbud and Case cards. Missing/expired values show a dash; scanning-off and unavailable states are explicit. Valid partial updates retain recent values from the same advertiser for up to 60 seconds, with per-component freshness.
+## License
+
+Original application code is licensed under the [MIT License](LICENSE). Third-party artwork and other materials retain their respective ownership and license terms.
+
+ProGlide is an independent project and is not affiliated with Apple, Google, Meta, bKash, or PayPal.
