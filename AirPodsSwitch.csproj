@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>PodGlide</AssemblyName>
+    <ApplicationIcon>Assets\PodGlide.ico</ApplicationIcon>
+    <Product>PodGlide</Product>
+  </PropertyGroup>
+  <ItemGroup><Compile Remove="BuildSupport\**\*.cs" /></ItemGroup>
+  <ItemGroup><None Update="Assets\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" /></ItemGroup>
+</Project>

@@ -1,0 +1,12 @@
+bin/
+obj/
+publish/
+Data/
+Runtime/
+*.exe
+*.dll
+*.pdb
+*.zip
+*.rsp
+portable.flag
+TEST-RESULTS.txt

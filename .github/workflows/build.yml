@@ -1,0 +1,26 @@
+name: Build PodGlide
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build portable app
+        shell: pwsh
+        run: |
+          dotnet publish AirPodsSwitch.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
+          if ($LASTEXITCODE -ne 0) { throw 'Publish failed' }
+          Set-Content publish/portable.flag 'Store preferences locally.'
+          Copy-Item PORTABLE-README.txt,THIRD-PARTY-NOTICES.md,LICENSE publish/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PodGlide-Windows-x64-Portable
+          path: publish/
