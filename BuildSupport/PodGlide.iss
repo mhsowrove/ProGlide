@@ -1,5 +1,5 @@
 #ifndef PayloadDir
-  #define PayloadDir "..\..\PodGlide-Portable"
+  #define PayloadDir "..\..\ProGlide-Compact-Portable"
 #endif
 #ifndef ReleaseDir
   #define ReleaseDir "..\.."
@@ -7,22 +7,22 @@
 
 [Setup]
 AppId={{67D68F1D-7E6C-420D-BAF6-A8410DBB4F58}
-AppName=PodGlide
-AppVersion=1.2.0
-AppVerName=PodGlide 1.2
+AppName=ProGlide
+AppVersion=1.3.0
+AppVerName=ProGlide 1.3
 AppPublisher=MD SOWROVE HOSSAIN
 AppPublisherURL=https://www.facebook.com/mhsowrove
 AppSupportURL=mailto:mhsowrove@gmail.com
 DefaultDirName={localappdata}\Programs\AirPodsSwitch
-DefaultGroupName=PodGlide
+DefaultGroupName=ProGlide
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.22000
 OutputDir={#ReleaseDir}
-OutputBaseFilename=PodGlide-1.2-Setup-Windows-x64
+OutputBaseFilename=ProGlide-1.3-Compact-Setup
 SetupIconFile=..\Assets\PodGlide.ico
-UninstallDisplayIcon={app}\Assets\PodGlide.ico
+UninstallDisplayIcon={app}\ProGlide.exe
 WizardStyle=modern
 Compression=lzma2/fast
 SolidCompression=yes
@@ -31,32 +31,45 @@ CloseApplications=yes
 RestartApplications=no
 AppMutex=Local\AirPodsSwitch.Tray
 DisableProgramGroupPage=yes
-UninstallDisplayName=PodGlide
-VersionInfoProductName=PodGlide
-VersionInfoDescription=PodGlide standalone installer
+UninstallDisplayName=ProGlide
+VersionInfoProductName=ProGlide
+VersionInfoDescription=ProGlide standalone installer
 VersionInfoCompany=MD SOWROVE HOSSAIN
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"
-Name: "startup"; Description: "Launch PodGlide when I sign in"; Flags: unchecked
+Name: "startup"; Description: "Launch ProGlide when I sign in"; Flags: unchecked
 
 [Files]
 Source: "{#PayloadDir}\*"; DestDir: "{app}"; Excludes: "portable.flag,Data\*"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\PodGlide"; Filename: "{app}\PodGlide.exe"; IconFilename: "{app}\Assets\PodGlide.ico"
-Name: "{autodesktop}\PodGlide"; Filename: "{app}\PodGlide.exe"; IconFilename: "{app}\Assets\PodGlide.ico"; Tasks: desktopicon
+Name: "{autoprograms}\ProGlide"; Filename: "{app}\ProGlide.exe"; IconFilename: "{app}\ProGlide.exe"
+Name: "{autodesktop}\ProGlide"; Filename: "{app}\ProGlide.exe"; IconFilename: "{app}\ProGlide.exe"; Tasks: desktopicon
 
 [Registry]
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "AirPodsSwitch"; ValueData: """{app}\PodGlide.exe"" --startup"; Tasks: startup; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "AirPodsSwitch"; ValueData: """{app}\ProGlide.exe"" --startup"; Tasks: startup; Flags: uninsdeletevalue
 
 [Run]
-Filename: "{app}\PodGlide.exe"; Description: "Launch PodGlide"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\ProGlide.exe"; Description: "Launch ProGlide"; Flags: nowait postinstall skipifsilent
+
+[InstallDelete]
+Type: filesandordirs; Name: "{app}\Runtime"; Check: LegacyRuntime
+Type: files; Name: "{autodesktop}\PodGlide.lnk"
+Type: files; Name: "{autoprograms}\PodGlide.lnk"
+Type: files; Name: "{app}\PodGlide.exe"
 
 [UninstallDelete]
 Type: files; Name: "{app}\portable.flag"
 
 [Code]
+function LegacyRuntime: Boolean;
+begin
+  Result := FileExists(ExpandConstant('{app}\AirPodsSwitch.dll')) and
+            FileExists(ExpandConstant('{app}\AirPodsSwitch.runtimeconfig.json')) and
+            FileExists(ExpandConstant('{app}\Runtime\dotnet.exe'));
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then

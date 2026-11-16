@@ -1,5 +1,6 @@
-PASS: single-file offline setup installed into a workspace test folder.
-PASS: bundled-runtime audio diagnostics succeeded.
-PASS: installed copy uses user preferences, not portable.flag.
-PASS: uninstaller removed the test app.
-PASS: existing user preferences preserved byte-for-byte.
+PASS: compact offline installer installed into a verified workspace test directory.
+PASS: no Runtime or external Assets folder required.
+PASS: the installed single executable passed Core Audio diagnostics.
+PASS: test uninstaller removed the app.
+PASS: existing user preferences stayed byte-for-byte unchanged.
+PASS: upgraded the installed app, removed its old bundled runtime and preserved preferences.

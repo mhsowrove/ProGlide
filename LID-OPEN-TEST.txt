@@ -1,0 +1,6 @@
+Windows client animations: False; ProGlide has its own animation preference.
+Initial animation sample: offset=23.8131919124961, scale=0.977587584082357, opacity=0.981305555555556
+Lid intermediate progress: 3.74784518451048E-06; target: open
+Lid moving progress: 0.0756030848270334
+PASS: spring reveal settled at its final position, scale and opacity.
+PASS: lid reached open state; badge: ●  CONNECTED

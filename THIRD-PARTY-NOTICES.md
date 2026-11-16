@@ -1,5 +1,20 @@
 # Third-party material
 
+## Battery protocol reference
+
+The BLE manufacturer-packet reader was informed by the MIT-licensed PodBattery project: https://github.com/hammad20120/PodBattery . Copyright (c) 2026 Hammad. The complete MIT license is provided as `PodBattery-LICENSE.txt` in the portable distribution and embedded in the executable as `ProGlide.Assets.PodBattery-LICENSE.txt`. See also `Assets/PodBattery-LICENSE.txt` in the source.
+
+The compact release does not distribute a Microsoft .NET runtime. It uses Windows' built-in .NET Framework and Bluetooth APIs.
+
+## Gmail and Facebook icons
+
+The contact buttons use downloaded official icon artwork:
+
+- Gmail: https://www.gstatic.com/images/branding/product/2x/gmail_2020q4_48dp.png
+- Facebook: https://www.facebook.com/images/fb_icon_325x325.png
+
+The respective companies retain their rights and trademarks. These assets identify the user's contact links, imply no affiliation or endorsement, and are excluded from the application code's MIT license.
+
 ## Donation provider logos
 
 PayPal logo: https://www.paypalobjects.com/webstatic/icon/pp258.png
@@ -10,12 +25,18 @@ PayPal and bKash retain their respective logo and trademark rights. The logos id
 
 ## AirPods product artwork
 
-`Assets/AirPodsPro.png` is Apple's original AirPods Pro product image, downloaded from:
+`Assets/AirPodsPro3.png` is Apple's original third-generation AirPods Pro product artwork, downloaded from:
 
-https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MWP22?wid=512&hei=512&fmt=png-alpha&op_usm=0.5,0.5&.v=1591634795000
+https://www.apple.com/v/airpods-pro/t/images/overview/battery/case__b87ou7jna9de_large.png
+
+The case-animation frames are extracted from Apple's original Pro 3 movie:
+
+https://www.apple.com/105/media/us/airpods-pro/2025/7acffb13-4adb-40b1-9393-8f1c99bc6c90/anim/case/small.mp4
+
+See ARTWORK-PROVENANCE.md for source hashes and the crop/resize command. The case geometry is not redrawn or AI generated.
 
 `Assets/PodGlide.ico` contains resized versions of that image. Apple retains rights to its artwork and trademarks; these assets are excluded from this repository's MIT license. Attribution does not grant a redistribution license. Anyone publishing or redistributing the Apple artwork must obtain any necessary rights or replace it with their own artwork. PodGlide is an independent project with no Apple affiliation or endorsement.
 
 ## Microsoft .NET runtime
 
-The portable release includes .NET 8.0.32 Core and Windows Desktop runtime files. Their license and third-party notices are included at `Runtime/LICENSE.txt` and `Runtime/ThirdPartyNotices.txt`. Runtime subdirectories may include further license files. SDK-built releases use the runtime supplied by the Microsoft .NET SDK.
+Older 1.2 releases bundled a Microsoft .NET 8 runtime with its own notices. The compact 1.3 release distributes no runtime; it uses the .NET Framework and Windows APIs supplied with Windows 11.

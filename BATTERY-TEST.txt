@@ -1,0 +1,3 @@
+PASS: battery packet decoding, left/right ordering, charging flag, malformed and distant-packet rejection.
+Scanner status: Waiting for nearby AirPods…
+LIVE NEARBY READING (device identity unverified): AirPods Pro 3 · L —   ·   R 90%   ·   Case —

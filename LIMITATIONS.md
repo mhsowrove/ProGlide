@@ -1,35 +1,26 @@
-# Verification and limitations
+# Limitations and verification — ProGlide 1.3 Compact
 
-Tested November 16, 2026 on Windows build 26300, x64, .NET 8.0.32.
+Verified locally on Windows 11 x64. The app targets the .NET Framework 4.8 already supplied with Windows; no .NET 8 runtime is distributed. The single executable embeds its artwork. A separate clean PC was not available.
 
-## Completed here
+## Hardware and behavior
 
-- All application source compiled successfully against the installed .NET 8 runtime; launcher compiled successfully.
-- Actual execution on .NET 8: case-insensitive name detection, saved endpoint ID precedence, renamed-device matching.
-- COM notification subscription and unsubscription, active output enumeration, friendly-name property reading and all three default-role queries.
-- Found one connected output: Realtek speakers.
-- Invalid endpoint switching rejected before touching defaults.
-- PolicyConfig activation and actual SetDefaultEndpoint calls for all three roles succeeded when re-selecting the existing speakers. Readback confirmed those roles.
-- WPF popup rendered successfully to popup-preview.png; inspected for legibility and clipping.
-- Tray controller stayed running during the launch check. Computer-use inspection did not expose the transient popup; full interactive tray/menu/settings tests remain unverified.
-- No startup setting was enabled for the user during testing.
+- Audio output enumeration and default-role queries work on this PC. The user confirmed the earlier switching app worked with their AirPods. The compact build passes read-only audio diagnostics; no forced routing between different devices was done during this visual update.
+- Connection/disconnection is detected through active playback endpoints, not actual physical case lid or ear placement. Bluetooth driver timing can delay events.
+- Default playback changes use undocumented Windows IPolicyConfig for console, multimedia and communications roles. Partial role changes are possible on failure; per-app pinned outputs and exclusive streams can ignore default switching.
+- The popup uses the primary display's work area. Secondary displays, unusually high DPI and high-contrast modes require further manual testing.
+- Original Pro 3 product-animation frames were verified directly against Apple's page and source movie. Cropping/resizing preserves the product design. The source's closed-case view is top-down. This is not Apple's iPhone pairing animation. No physical lid telemetry is read.
+- The animation can be turned off. Theme changes preview instantly and only persist on Save.
 
-## Requires manual testing with hardware
+## Battery
 
-- AirPods Pro connect/disconnect, repeated rapid reconnections, sleep/resume and event debounce. No AirPods playback endpoint was connected here.
-- Audible routing between two distinct devices; only one output was available.
-- Auto-switch on real connection; disabling/re-enabling startup and a Windows sign-in cycle.
-- Settings persistence through normal UI interaction, duplicate-instance dialog, context-menu Exit and keyboard navigation.
-- Multiple Bluetooth profiles and multiple AirPods devices, renamed endpoints, stale saved IDs and unplugged PC speakers.
-- Secondary monitors, taskbar positions, very high display scaling, accessibility/high-contrast themes. Placement uses the primary display's WPF work area; it does not follow the mouse to another display.
-- Standard .NET SDK publish/self-contained package and other Windows builds/ARM64. Included binary targets x64 only.
+- A passive Bluetooth LE scan received a real nearby Pro 3 packet with right 90%; left and case were absent. See BATTERY-TEST.txt.
+- Reports are in 10% steps. A dash is unknown, not zero. No exact single-percent accuracy is claimed.
+- Broadcast identity is unverified. Another nearby AirPods pair can be selected. No Bluetooth addresses are stored.
+- Firmware and adapter support vary, some components may stop broadcasting while closed, and cached readings expire after 60 seconds. Open the case close to the PC to encourage updates. Scanning is optional.
+- Malformed/unknown/weak packets are rejected. No wireless setting is changed, no pairing is performed and nothing is uploaded.
 
-## Product boundaries
+## Packaging and ownership
 
-- Detection means an **active Windows playback endpoint**, not case opening, ear placement, Bluetooth pairing, or proof of an audible stream. Driver timing may delay endpoint activation; drivers that leave an endpoint active can prevent connection prompts.
-- No battery percentage, Apple pairing animation/protocol, microphone switching, Bluetooth pairing/unpairing, or device volume manipulation.
-- Name matching is a configurable heuristic and can match other AirPods models. Selecting an explicit endpoint is more precise.
-- Default switching relies on an undocumented Windows interface that can break after an update. Errors may leave a partial role change; Windows Sound settings offers manual recovery.
-- Per-app pinned outputs and exclusive streams may stay on their previous output.
-- No installer, update service, code-signing certificate, or SmartScreen reputation. Windows may show an unknown-publisher prompt. Do not disable Windows security features.
-- The supplied runtime-dependent launcher assumes the standard x64 .NET installation path under Program Files. For a custom runtime location, run the DLL with that dotnet host or build with the SDK.
+The app and installer are unsigned. It relies on normal Windows 11 components, so it is not independent of the operating system. Stripped-down Windows installations or missing Bluetooth components need separate validation. Original code is MIT licensed; Apple, Google, Meta, bKash and PayPal artwork has separate ownership notices. Donations are opened externally or copied, never processed automatically.
+
+Settings and logs remain under the current user's AirPodsSwitch folder for compatibility, or under Data beside a portable copy. Logs are not size-capped. The shareable packages contain no personal settings or logs.

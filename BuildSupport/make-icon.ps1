@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $root = Split-Path $PSScriptRoot -Parent
-$source = [System.Drawing.Image]::FromFile((Join-Path $root 'Assets\AirPodsPro.png'))
+$source = [System.Drawing.Image]::FromFile((Join-Path $root 'Assets\AirPodsPro3.png'))
 $frames = @()
 try {
     foreach ($size in @(16,24,32,48,64,128,256)) {
@@ -10,8 +10,10 @@ try {
         $stream = [IO.MemoryStream]::new()
         try {
             $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-            # Remove excess transparent margins so the artwork fills a standard tray slot.
-            $graphics.DrawImage($source,[System.Drawing.Rectangle]::new(0,0,$size,$size),[System.Drawing.Rectangle]::new(41,26,430,430),[System.Drawing.GraphicsUnit]::Pixel)
+            # Preserve the verified third-generation image's proportions.
+            $ratio = [Math]::Min($size / $source.Width, $size / $source.Height)
+            $width = [int]($source.Width * $ratio); $height = [int]($source.Height * $ratio)
+            $graphics.DrawImage($source,[System.Drawing.Rectangle]::new([int](($size-$width)/2),[int](($size-$height)/2),$width,$height))
             $bitmap.Save($stream,[System.Drawing.Imaging.ImageFormat]::Png)
             $frames += [pscustomobject]@{ Size=$size; Bytes=$stream.ToArray() }
         } finally { $stream.Dispose(); $graphics.Dispose(); $bitmap.Dispose() }

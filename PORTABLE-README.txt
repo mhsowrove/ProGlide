@@ -1,39 +1,29 @@
-PODGLIDE — Your sound, one tap away
+PROGLIDE 1.3 COMPACT
+Developed by MD SOWROVE HOSSAIN
 
-Version 1.2 · Developed by MD SOWROVE HOSSAIN
+Windows 11 x64. No separate runtime download is required.
+The app uses the .NET Framework already built into Windows.
+All icons and artwork are embedded in ProGlide.exe.
 
-Windows 11 x64. No .NET installation required.
+Extract the whole portable ZIP and run ProGlide.exe.
+Click its AirPods tray icon, then Preferences to select your devices.
+Keep portable.flag to store preferences and logs in the local Data folder.
+Without it, settings use the current user's LocalAppData folder.
+Exit any other running copy before launching this one.
 
-1. Extract the WHOLE ZIP into a folder you can write to.
-2. Double-click PodGlide.exe.
-3. Click the AirPods icon in the notification area, then Preferences.
-4. Connect AirPods in Windows, choose your AirPods and PC speaker outputs,
-   and click Save preferences.
+Green: connected, lid opens. Red: disconnected/not connected, lid closes.
+Light/Dark themes and animation control are in Preferences.
+Save preferences to keep the selected theme.
 
-Auto-switch and sign-in startup are OFF by default in a fresh portable copy.
-Startup is optional; keep the folder in place after enabling it.
-Exit any already-running installed or portable copy before launching another.
+Battery tracking reads NEARBY AirPods broadcasts in 10% steps.
+A dash means no level was broadcast. Readings expire after 60 seconds.
+Another nearby pair can be detected; device identity is not verified.
+Open the case near the PC to refresh. Turn scanning off in Preferences.
+No Bluetooth address is saved and nothing is uploaded.
 
-Settings and errors are saved in Data beside the app. Keep portable.flag.
-To share a used copy, Exit first and remove only its Data folder from the
-copy you send. That resets personal output selections, logs and preferences.
-The original distributed ZIP contains no personal settings or logs.
+Auto-switch and startup are off in a fresh copy. To share a used portable
+folder, Exit first and remove Data from the COPY you send.
+No personal preferences or logs are included in the distributed ZIP.
 
-Keep Assets and Runtime beside the executable. Do not run inside the ZIP.
-The included .NET 8.0.32 runtime is x64. This is a folder-based portable
-distribution, not a single self-contained EXE. Windows supplies .NET
-Framework 4.x for the small launcher.
-
-This is an independent app, not made by Apple. The icon uses Apple's
-AirPods Pro product image. See THIRD-PARTY-NOTICES.md.
-
-Known limits: detects active Windows audio outputs, not case opening or
-ear placement. Default switching uses an undocumented Windows interface.
-Per-app pinned audio outputs can ignore it. No battery telemetry.
-
-Preferences includes a separate connection-animation toggle. Turn it off
-for reduced motion. About contains email, Facebook and optional donation
-links; no payment is processed inside the app.
-
-To remove: disable launch at sign-in in Preferences if enabled, Exit from
-the tray menu, then delete the extracted folder.
+About includes contact/support links. No payment is processed in the app.
+See LICENSE, THIRD-PARTY-NOTICES.md and PodBattery-LICENSE.txt.

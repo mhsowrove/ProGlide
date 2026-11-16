@@ -21,22 +21,36 @@ namespace AirPodsSwitch
         public string Match = "AirPods";
         public bool AutoSwitch;
         public bool AnimatePopup = true;
+        public string ThemeName = "Dark";
+        public bool TrackBattery = true;
     }
     public static class Program
     {
         [STAThread] public static int Main(string[] args)
+        {
+            try { return Run(args); }
+            catch (Exception error)
+            {
+                int index = Array.IndexOf(args, "--report");
+                if (index >= 0 && index + 1 < args.Length) File.WriteAllText(args[index + 1], "FAIL: " + error);
+                else MessageBox.Show(error.Message, "ProGlide");
+                return 1;
+            }
+        }
+        static int Run(string[] args)
         {
             if (args.Contains("--diagnose")) return Diagnostics.Run(args);
             if (args.Contains("--render-test")) return Diagnostics.Render(args);
             if (args.Contains("--render-preferences")) return Diagnostics.RenderPreferences(args);
             if (args.Contains("--render-about")) return Diagnostics.RenderAbout(args);
             if (args.Contains("--test-animation")) return Diagnostics.TestAnimation(args);
+            if (args.Contains("--battery-scan")) return Diagnostics.ScanBattery(args);
             using (var mutex = new Mutex(true, "Local\\AirPodsSwitch.Tray", out owns))
             {
-                if (!owns) { MessageBox.Show("PodGlide is already running. Click its AirPods icon in the system tray."); return 0; }
+                if (!owns) { MessageBox.Show("ProGlide is already running. Click its AirPods icon in the system tray."); return 0; }
                 var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
                 try { var controller = new Controller(app); app.Run(); controller.Dispose(); return 0; }
-                catch (Exception e) { MessageBox.Show(e.Message, "PodGlide could not start"); return 1; }
+                catch (Exception e) { MessageBox.Show(e.Message, "ProGlide could not start"); return 1; }
             }
         }
         static bool owns;
@@ -55,22 +69,28 @@ namespace AirPodsSwitch
         Window settings;
         Window about;
         readonly System.Drawing.Icon appIcon;
+        readonly Action updateMenuTheme;
+        readonly BatteryMonitor battery = new BatteryMonitor();
         public Controller(Application application, bool silent = false)
         {
             app = application;
             Directory.CreateDirectory(folder);
             try { using (var f = File.OpenRead(Path.Combine(folder, "settings.xml"))) preferences = (Preferences)new XmlSerializer(typeof(Preferences)).Deserialize(f); }
             catch (Exception e) { Log("Settings load (using defaults): " + e.Message); }
+            Theme.Apply(preferences.ThemeName);
+            battery.SetEnabled(preferences.TrackBattery);
             audio = new Audio();
-            appIcon = new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "PodGlide.ico"));
-            tray = new Forms.NotifyIcon { Text = "PodGlide · Choose your sound", Icon = appIcon, Visible = true };
+            appIcon = Theme.TrayIcon();
+            tray = new Forms.NotifyIcon { Text = "ProGlide · Choose your sound", Icon = appIcon, Visible = true };
             var menu = new Forms.ContextMenuStrip();
             menu.BackColor = System.Drawing.Color.FromArgb(27, 35, 43); menu.ForeColor = System.Drawing.Color.FromArgb(243, 246, 247);
             menu.ShowImageMargin = false; menu.Font = new System.Drawing.Font("Segoe UI", 10); menu.Padding = new Forms.Padding(6);
+            updateMenuTheme = () => { menu.BackColor = Theme.IsLight ? System.Drawing.Color.FromArgb(242, 246, 248) : System.Drawing.Color.FromArgb(27, 35, 43); menu.ForeColor = Theme.IsLight ? System.Drawing.Color.FromArgb(21, 43, 54) : System.Drawing.Color.FromArgb(243, 246, 247); };
+            Theme.Changed += updateMenuTheme; updateMenuTheme();
             menu.Items.Add("Choose output", null, (s, e) => Show("Choose your sound"));
             menu.Items.Add("Settings", null, (s, e) => Settings());
             menu.Items.Add("Windows sound settings", null, (s, e) => OpenSound());
-            menu.Items.Add("About PodGlide", null, (s, e) => About());
+            menu.Items.Add("About ProGlide", null, (s, e) => About());
             menu.Items.Add("Exit", null, (s, e) => app.Shutdown());
             tray.ContextMenuStrip = menu;
             tray.MouseClick += (s, e) => { if (e.Button == Forms.MouseButtons.Left) Show("Choose your sound"); };
@@ -94,6 +114,7 @@ namespace AirPodsSwitch
         }
         void Refresh()
         {
+            battery.EnsureScanning();
             try
             {
                 var devices = audio.List();
@@ -117,7 +138,7 @@ namespace AirPodsSwitch
             catch (Exception e)
             {
                 Log("Switch: " + e);
-                MessageBox.Show("Could not switch every audio role. Some roles may have changed.\n\n" + e.Message + "\n\nYou can also select an output in Windows Sound settings.", "PodGlide");
+                MessageBox.Show("Could not switch every audio role. Some roles may have changed.\n\n" + e.Message + "\n\nYou can also select an output in Windows Sound settings.", "ProGlide");
             }
         }
         void Show(string title)
@@ -133,10 +154,13 @@ namespace AirPodsSwitch
                 var soundButton = Theme.IconButton("Sound settings", "\uE767", OpenSound); soundButton.Width = 160; soundButton.Margin = new Thickness(0); popup.Footer.Children.Add(soundButton);
                 popup.Show();
             }
-            catch (Exception e) { Log("Popup: " + e); MessageBox.Show(e.Message, "PodGlide"); }
+            catch (Exception e) { Log("Popup: " + e); MessageBox.Show(e.Message, "ProGlide"); }
         }
         void Populate(Popup view)
         {
+            var reading = battery.Current();
+            view.Battery.Visibility = preferences.TrackBattery ? Visibility.Visible : Visibility.Collapsed;
+            view.Battery.Text = reading == null ? battery.Status : "Nearby AirPods battery · " + reading.Display();
             var devices = audio.List(); string active = audio.Default(1);
             var pods = devices.Where(e => Matches(e, preferences)).ToList();
             var speakers = devices.FirstOrDefault(e => e.Id == preferences.SpeakersId);
@@ -144,8 +168,7 @@ namespace AirPodsSwitch
             if (view.Snapshot == signature) return;
             view.Snapshot = signature;
             view.Outputs.Children.Clear();
-            view.Connection.Text = pods.Count > 0 ? "●  CONNECTED" : "○  NOT CONNECTED";
-            view.Connection.Foreground = pods.Count > 0 ? Theme.Mint : Theme.Muted;
+            view.SetConnection(pods.Count > 0);
             if (pods.Count == 0) view.Outputs.Children.Add(Theme.Device("AirPods Pro", "Connect your AirPods to use this output", true, false, false, () => { }));
             foreach (var endpoint in pods.Concat(speakers == null ? new Endpoint[0] : new[] { speakers }).GroupBy(e => e.Id).Select(g => g.First()))
             {
@@ -157,13 +180,14 @@ namespace AirPodsSwitch
             var playing = devices.FirstOrDefault(e => e.Id == active);
             view.Status.Text = pods.Count == 0 ? "Connect your AirPods, or keep listening on your PC." : "Choose where your next moment plays.";
             if (speakers == null) view.Status.Text += string.IsNullOrEmpty(preferences.SpeakersId) ? " Select your speakers in Preferences." : " Your saved speakers are offline.";
-            tray.Text = "PodGlide · " + (playing == null ? "No active output" : (Matches(playing, preferences) ? "AirPods" : "PC audio"));
+            tray.Text = "ProGlide · " + (playing == null ? "No active output" : (Matches(playing, preferences) ? "AirPods" : "PC audio"));
         }
         internal static Button Button(string text, Action click)
         {
             return Theme.Button(text, click, false);
         }
         internal Window PreferencesWindow { get { return settings; } }
+        internal ComboBox AppearanceSelector;
         void About()
         {
             if (about != null) { about.Activate(); return; }
@@ -172,12 +196,12 @@ namespace AirPodsSwitch
         internal void Settings()
         {
             if (settings != null) { settings.Activate(); return; }
-            settings = new Window { Title = "PodGlide · Preferences", Width = 540, Height = 800, MinWidth = 480, MinHeight = 560, WindowStartupLocation = WindowStartupLocation.CenterScreen };
+            settings = new Window { Title = "ProGlide · Preferences", Width = 540, Height = Math.Min(880, SystemParameters.WorkArea.Height - 40), MinWidth = 480, MinHeight = 560, WindowStartupLocation = WindowStartupLocation.CenterScreen };
             Theme.Window(settings);
             var stack = new StackPanel { Margin = new Thickness(32, 24, 32, 32) };
             settings.Content = new ScrollViewer { Content = stack, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
             var brand = new DockPanel(); var art = Theme.Product(66); DockPanel.SetDock(art, Dock.Right); brand.Children.Add(art);
-            var heading = new StackPanel(); heading.Children.Add(Theme.Text("PodGlide", 15, Theme.Mint));
+            var heading = new StackPanel(); heading.Children.Add(Theme.Wordmark(15));
             var pageTitle = Theme.Text("Make it yours.", 30, Theme.Ink); pageTitle.FontWeight = FontWeights.SemiBold; pageTitle.Margin = new Thickness(0, 6, 0, 0); heading.Children.Add(pageTitle); brand.Children.Add(heading); stack.Children.Add(brand);
             var intro = Theme.Text("Your devices. Your listening flow.", 13, Theme.Muted); intro.Margin = new Thickness(0, 8, 0, 12); stack.Children.Add(intro);
             Action<string> label = text => stack.Children.Add(new TextBlock { Text = text, Foreground = Theme.Muted, FontSize = 12, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 19, 0, 8), TextWrapping = TextWrapping.Wrap });
@@ -198,25 +222,31 @@ namespace AirPodsSwitch
             label("LISTENING PREFERENCES");
             var auto = new CheckBox { Content = "Switch to AirPods when they connect", Foreground = Theme.Ink, IsChecked = preferences.AutoSwitch, Margin = new Thickness(0, 4, 0, 6) }; Theme.Toggle(auto); stack.Children.Add(auto);
             var startup = new CheckBox { Content = "Launch quietly when I sign in", Foreground = Theme.Ink, IsChecked = StartupEnabled() }; Theme.Toggle(startup); stack.Children.Add(startup);
-            var motion = new CheckBox { Content = "Animate connection popup", Foreground = Theme.Ink, IsChecked = preferences.AnimatePopup, Margin = new Thickness(0, 6, 0, 0), ToolTip = "PodGlide spring animation. Turn off for reduced motion." }; Theme.Toggle(motion); stack.Children.Add(motion);
+            var motion = new CheckBox { Content = "Animate connection popup", Foreground = Theme.Ink, IsChecked = preferences.AnimatePopup, Margin = new Thickness(0, 6, 0, 0), ToolTip = "ProGlide spring animation. Turn off for reduced motion." }; Theme.Toggle(motion); stack.Children.Add(motion);
+            label("APPEARANCE");
+            var appearance = new ComboBox { ItemsSource = new[] { "Dark", "Light" }, SelectedItem = preferences.ThemeName == "Light" ? "Light" : "Dark" }; Theme.Selector(appearance); stack.Children.Add(appearance);
+            AppearanceSelector = appearance;
+            appearance.SelectionChanged += (s, e) => { Theme.Apply((string)appearance.SelectedItem); };
+            var tracking = new CheckBox { Content = "Read nearby AirPods battery", Foreground = Theme.Ink, IsChecked = preferences.TrackBattery, Margin = new Thickness(0, 14, 0, 0), ToolTip = "Nearby broadcasts report in 10% steps and may belong to another pair. No Bluetooth address is saved." }; Theme.Toggle(tracking); stack.Children.Add(tracking);
             var note = Theme.Text("Changes your playback output, including calls. Disconnecting lets Windows choose a fallback.", 12, Theme.Muted); note.Margin = new Thickness(0, 20, 0, 16); stack.Children.Add(note);
             stack.Children.Add(Theme.Button("Save preferences", () =>
             {
                 try
                 {
-                    var next = new Preferences { AirPodsId = ((Endpoint)pods.SelectedItem).Id, SpeakersId = ((Endpoint)speakers.SelectedItem).Id, Match = match.Text.Trim(), AutoSwitch = auto.IsChecked == true, AnimatePopup = motion.IsChecked == true };
+                    var next = new Preferences { AirPodsId = ((Endpoint)pods.SelectedItem).Id, SpeakersId = ((Endpoint)speakers.SelectedItem).Id, Match = match.Text.Trim(), AutoSwitch = auto.IsChecked == true, AnimatePopup = motion.IsChecked == true, ThemeName = (string)appearance.SelectedItem, TrackBattery = tracking.IsChecked == true };
                     if (next.AirPodsId == "" && next.Match == "") throw new InvalidOperationException("Enter an AirPods name to detect.");
                     if (next.AirPodsId != "" && next.AirPodsId == next.SpeakersId) throw new InvalidOperationException("Choose different AirPods and speaker outputs.");
                     SetStartup(startup.IsChecked == true);
                     var path = Path.Combine(folder, "settings.xml");
                     using (var f = File.Create(path + ".tmp")) new XmlSerializer(typeof(Preferences)).Serialize(f, next);
-                    File.Move(path + ".tmp", path, true);
-                    preferences = next; initialized = false; Refresh(); settings.Close();
+                    if (File.Exists(path)) File.Replace(path + ".tmp", path, null);
+                    else File.Move(path + ".tmp", path);
+                    preferences = next; battery.SetEnabled(preferences.TrackBattery); initialized = false; Refresh(); settings.Close();
                 }
                 catch (Exception e) { MessageBox.Show("Could not save settings: " + e.Message); }
             }, true));
-            var aboutButton = Theme.IconButton("About PodGlide", "\uE946", About); aboutButton.Margin = new Thickness(0, 10, 0, 0); stack.Children.Add(aboutButton);
-            settings.Closed += (s, e) => settings = null; settings.Show();
+            var aboutButton = Theme.IconButton("About ProGlide", "\uE946", About); aboutButton.Margin = new Thickness(0, 10, 0, 0); stack.Children.Add(aboutButton);
+            settings.Closed += (s, e) => { Theme.Apply(preferences.ThemeName); settings = null; }; settings.Show();
         }
         const string RunKey = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
         static bool StartupEnabled() { using (var key = Registry.CurrentUser.OpenSubKey(RunKey)) return key != null && key.GetValue("AirPodsSwitch") != null; }
@@ -226,11 +256,11 @@ namespace AirPodsSwitch
             {
                 if (enabled)
                 {
-                    string exe = Environment.ProcessPath;
+                    string exe = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
                     if (string.IsNullOrEmpty(exe) || Path.GetFileNameWithoutExtension(exe).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
                     {
-                        exe = Path.Combine(AppContext.BaseDirectory, "PodGlide.exe");
-                        if (!File.Exists(exe)) throw new InvalidOperationException("Run PodGlide.exe before enabling startup.");
+                        exe = Path.Combine(AppContext.BaseDirectory, "ProGlide.exe");
+                        if (!File.Exists(exe)) throw new InvalidOperationException("Run ProGlide.exe before enabling startup.");
                     }
                     key.SetValue("AirPodsSwitch", "\"" + exe + "\" --startup");
                 }
@@ -242,6 +272,8 @@ namespace AirPodsSwitch
         public void Dispose()
         {
             disposed = true; poll.Stop(); debounce.Stop(); audio.Changed -= QueueRefresh; audio.Dispose();
+            Theme.Changed -= updateMenuTheme;
+            battery.Dispose();
             tray.Visible = false; tray.Dispose(); appIcon.Dispose(); if (popup != null) popup.Close(); if (settings != null) settings.Close();
             if (about != null) about.Close();
         }
@@ -253,6 +285,12 @@ namespace AirPodsSwitch
         public readonly StackPanel Footer = new StackPanel { Orientation = Orientation.Horizontal };
         public readonly TextBlock Connection = new TextBlock { Text = "○  NOT CONNECTED", Foreground = Theme.Muted, FontSize = 10, FontWeight = FontWeights.SemiBold };
         public readonly TextBlock Status = new TextBlock { Foreground = Theme.Muted, FontSize = 13, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Margin = new Thickness(14, 9, 14, 24), LineHeight = 20 };
+        public readonly TextBlock Battery = new TextBlock { Foreground = Theme.Muted, FontSize = 11, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Margin = new Thickness(0, 0, 0, 14), ToolTip = "Nearby broadcasts: device identity is unverified. Levels arrive in 10% steps and expire after 60 seconds. Open the case nearby to refresh." };
+        readonly AirPodsCase caseArt = new AirPodsCase();
+        Border badge;
+        bool connected;
+        readonly bool transition;
+        readonly bool departure;
         readonly DispatcherTimer timeout = new DispatcherTimer { Interval = TimeSpan.FromSeconds(20) };
         readonly TranslateTransform slide = new TranslateTransform();
         readonly ScaleTransform scale = new ScaleTransform(1, 1);
@@ -260,9 +298,20 @@ namespace AirPodsSwitch
         public bool Animate = true;
         internal double SlideOffset { get { return slide.Y; } }
         internal double CardScale { get { return scale.ScaleX; } }
+        internal double LidProgress { get { return caseArt.OpenProgress; } }
+        public void SetConnection(bool value)
+        {
+            bool changed = connected != value; connected = value;
+            Connection.Text = value ? "●  CONNECTED" : departure ? "●  DISCONNECTED" : "●  NOT CONNECTED";
+            Connection.Foreground = Theme.Brush(value ? "#79DEA6" : "#FF989F");
+            if (badge != null) badge.Background = Theme.Brush(value ? "#202E2A" : "#3F2229");
+            if (IsLoaded) caseArt.Present(value, Animate, changed);
+        }
         public Popup(string title, Action about = null)
         {
-            Title = "PodGlide";
+            Title = "ProGlide";
+            transition = title == "AirPods connected" || title == "AirPods disconnected";
+            departure = title == "AirPods disconnected";
             Theme.Window(this);
             Width = 410; SizeToContent = SizeToContent.Height; MaxHeight = Math.Min(720, SystemParameters.WorkArea.Height - 32);
             WindowStyle = WindowStyle.None; ResizeMode = ResizeMode.NoResize; AllowsTransparency = true; Background = Brushes.Transparent;
@@ -270,22 +319,26 @@ namespace AirPodsSwitch
             var content = new StackPanel { Margin = new Thickness(28, 20, 28, 22) };
             var header = new DockPanel(); var close = Theme.Button("×", () => Close(), false); close.Width = 28; close.Height = 28; close.Padding = new Thickness(0); close.FontSize = 18; close.ToolTip = "Dismiss"; close.Margin = new Thickness(0); close.Background = Brushes.Transparent; close.BorderThickness = new Thickness(0);
             DockPanel.SetDock(close, Dock.Right); header.Children.Add(close);
-            var info = Theme.Button("", () => { if (about != null) about(); }, false); info.Content = Theme.Glyph("\uE946", 15); info.Width = 30; info.Height = 28; info.Padding = new Thickness(0); info.Margin = new Thickness(0, 0, 6, 0); info.BorderThickness = new Thickness(0); info.Background = Brushes.Transparent; info.ToolTip = "About PodGlide"; System.Windows.Automation.AutomationProperties.SetName(info, "About PodGlide"); DockPanel.SetDock(info, Dock.Right); header.Children.Add(info);
-            var wordmark = Theme.Text("PodGlide", 15, Theme.Ink); wordmark.FontWeight = FontWeights.SemiBold; wordmark.VerticalAlignment = VerticalAlignment.Center; header.Children.Add(wordmark); content.Children.Add(header);
+            var info = Theme.Button("", () => { if (about != null) about(); }, false); info.Content = Theme.Glyph("\uE946", 15); info.Width = 30; info.Height = 28; info.Padding = new Thickness(0); info.Margin = new Thickness(0, 0, 6, 0); info.BorderThickness = new Thickness(0); info.Background = Brushes.Transparent; info.ToolTip = "About ProGlide"; System.Windows.Automation.AutomationProperties.SetName(info, "About ProGlide"); DockPanel.SetDock(info, Dock.Right); header.Children.Add(info);
+            header.Children.Add(Theme.Wordmark(15)); content.Children.Add(header);
             var hero = new Grid { Height = 164, Margin = new Thickness(0, 4, 0, 5) };
             hero.Children.Add(new System.Windows.Shapes.Ellipse { Width = 180, Height = 130, Fill = new RadialGradientBrush(Color.FromArgb(90, 85, 155, 128), Colors.Transparent) });
-            var product = Theme.Product(154); product.Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 18, ShadowDepth = 9, Opacity = .26 }; hero.Children.Add(product); content.Children.Add(hero);
-            var badge = new Border { Child = Connection, HorizontalAlignment = HorizontalAlignment.Center, Background = Theme.Brush("#202E2A"), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 6, 10, 6), Margin = new Thickness(0, 0, 0, 13) }; content.Children.Add(badge);
+            var product = new Viewbox { Child = caseArt, Width = 180, Height = 164, Stretch = Stretch.Uniform }; hero.Children.Add(product); content.Children.Add(hero);
+            badge = new Border { Child = Connection, HorizontalAlignment = HorizontalAlignment.Center, Background = Theme.Brush("#3F2229"), CornerRadius = new CornerRadius(10), Padding = new Thickness(10, 6, 10, 6), Margin = new Thickness(0, 0, 0, 13) }; content.Children.Add(badge);
+            SetConnection(title == "AirPods connected");
             var headline = Theme.Text(title, 25, Theme.Ink); headline.FontWeight = FontWeights.SemiBold; headline.TextAlignment = TextAlignment.Center; content.Children.Add(headline);
-            content.Children.Add(Status); content.Children.Add(Outputs); content.Children.Add(Footer);
+            content.Children.Add(Status); content.Children.Add(Battery); content.Children.Add(Outputs); content.Children.Add(Footer);
             Footer.Margin = new Thickness(0, 8, 0, 0);
-            var background = new LinearGradientBrush(); background.StartPoint = new Point(0, 0); background.EndPoint = new Point(1, 1); background.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#202B30"), 0)); background.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#11161B"), .66));
+            var background = new LinearGradientBrush(); background.StartPoint = new Point(0, 0); background.EndPoint = new Point(1, 1);
+            var topColor = new GradientStop { Offset = 0 }; System.Windows.Data.BindingOperations.SetBinding(topColor, GradientStop.ColorProperty, new System.Windows.Data.Binding("Color") { Source = Theme.Brush("#202B30") }); background.GradientStops.Add(topColor);
+            var bottomColor = new GradientStop { Offset = .66 }; System.Windows.Data.BindingOperations.SetBinding(bottomColor, GradientStop.ColorProperty, new System.Windows.Data.Binding("Color") { Source = Theme.Brush("#11161B") }); background.GradientStops.Add(bottomColor);
             var card = new Border { Background = background, BorderBrush = Theme.Brush("#3C4A51"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(24), Child = new ScrollViewer { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto } };
             var transforms = new TransformGroup(); transforms.Children.Add(scale); transforms.Children.Add(slide); card.RenderTransform = transforms; card.RenderTransformOrigin = new Point(.5, 1);
             Content = new Border { Margin = new Thickness(10), Background = Brushes.Transparent, Child = card, Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 16, ShadowDepth = 4, Opacity = .3 } };
             Loaded += (s, e) =>
             {
                 Position();
+                caseArt.Present(connected, Animate, transition);
                 if (Animate)
                 {
                     // iPhone-inspired spring reveal; this is a 2D Windows animation.

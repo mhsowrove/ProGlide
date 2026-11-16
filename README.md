@@ -1,104 +1,70 @@
-# PodGlide — Your sound, one tap away
+# ProGlide 1.3 Compact
 
-## Standalone Windows installer (version 1.2)
+A small Windows 11 x64 tray app for AirPods audio switching, connection popups, and nearby AirPods battery broadcasts.
 
-Run **PodGlide-1.2-Setup-Windows-x64.exe**. It installs for the current user, includes the required x64 .NET runtime, creates shortcuts, offers optional sign-in startup, and provides a Windows uninstaller. No separate runtime download is required. Existing preferences are retained during an upgrade. The package is unsigned.
+## Downloads and running
 
-The popup includes icon buttons for Preferences, Sound settings and About. The About panel credits **MD SOWROVE HOSSAIN**, with the supplied email and Facebook links, plus optional bKash and PayPal support buttons. bKash copies the supplied number; PayPal opens the supplied PayPal.me URL. PodGlide does not initiate or process payments.
+- **ProGlide-1.3-Compact-Setup.exe**: offline per-user installer, Start menu/desktop shortcuts, optional startup and Windows uninstaller.
+- **ProGlide.exe**: the app itself, with all icons and artwork embedded. This single file can run directly and be shared.
+- **ProGlide-Compact-Portable.zip**: the app, licenses and a portable-mode marker. Extract first; settings stay in its Data folder.
 
-The spring-style reveal is inspired by the iPhone AirPods connection card; it is a 2D Windows effect, not Apple's exact 3D animation. Use **Animate connection popup** in Preferences to disable it for reduced motion. This app-specific preference does not change Windows animation settings. Windows controls the system tray icon's physical slot size; the artwork has been cropped tighter to fill it more clearly.
+No .NET 8 download, bundled runtime, service, driver, or third-party runtime package is required. The compact build targets the **.NET Framework 4.8 already included with Windows 11**, and uses built-in Windows Bluetooth APIs. It is not independent of Windows' system components. Earlier 63 MB installers included the entire .NET 8 runtime; this version does not.
 
-Installer source: `BuildSupport/PodGlide.iss`. To rebuild using this machine's runtime/legacy-compiler route and an installed official Inno Setup compiler:
+Exit another running copy before launching. Open the AirPods tray icon and Preferences, connect your AirPods in Windows, then select the AirPods and speaker outputs. Reopen Preferences to refresh selectors after connecting hardware. New installs default to name detection and leave auto-switch/startup off; existing audio preferences are preserved on upgrade.
+
+## Features
+
+- Connection: closed-to-open lid animation and green connected badge.
+- Disconnection: open-to-closed animation and red disconnected badge. An already-offline popup starts closed.
+- ProGlide name paired with the AirPods icon, plus Preferences, Sound settings and About buttons.
+- Light and Dark themes preview instantly. Save persists the selection; closing without saving restores the saved theme.
+- Separate animation and battery-monitoring toggles in Preferences.
+- About credits MD SOWROVE HOSSAIN, with supplied Gmail, Facebook, bKash and PayPal links. bKash copies a number; PayPal opens a link. The app processes no payments.
+
+## Battery readings
+
+The app passively reads recognized AirPods manufacturer broadcasts through Windows' Bluetooth LE watcher. Left, right and case levels appear when present, with charging flags, in **10% steps**. A dash means the packet did not include that level. Readings expire after 60 seconds. Open the case close to the PC to encourage new broadcasts.
+
+Broadcasts have rotating addresses and do not prove ownership. The UI labels them **nearby AirPods battery**; another nearby pair can be selected. Unknown models and weak/malformed packets are ignored. Bluetooth scanning can be disabled. No Bluetooth addresses are saved, and no data is sent over the internet. Firmware, Bluetooth adapter and broadcast availability affect compatibility.
+
+A local 20-second test observed a nearby AirPods Pro 3 packet with right earbud 90%, while left/case were absent. That was an actual broadcast, not a guarantee about the user's paired device. See BATTERY-TEST.txt.
+
+## Build without an SDK
+
+On Windows 11, run in PowerShell:
+
+```powershell
+.\build.ps1
+```
+
+This uses the Windows C# compiler and .NET Framework/WPF/WinRT metadata already installed on Windows 11. Produces ProGlide.exe. Exit the running app first if rebuilding that same copy. No NuGet packages are used.
+
+An SDK project targeting net48 is also provided for development, but the verified build here used build.ps1, not an SDK.
+
+To build the compact installer with the official Inno Setup compiler:
 
 ```powershell
 .\BuildSupport\build-installer.ps1 -CompilerPath 'C:\Path\To\Inno Setup 6\ISCC.exe'
 ```
 
-See `INSTALLER-TEST.txt` and `ANIMATION-TEST.txt` for local integration-test results. No clean second PC or fresh Windows account was available for testing.
-
-A Windows 11 x64, C# .NET 8 WPF tray application. No third-party packages, account, administrator rights, or background network access are required.
-
-## Portable release
-
-Download PodGlide-Portable-Windows-x64.zip, extract the whole folder, then run PodGlide.exe. The runtime is included. Fresh portable settings are stored in Data next to the app; no personal device IDs or logs are included. See PORTABLE-README.txt.
-
-## Run the developer / installed build
-
-1. Extract the entire ZIP into a permanent folder.
-2. Install the **Microsoft .NET 8 Desktop Runtime, x64** if absent: https://dotnet.microsoft.com/en-us/download/dotnet/8.0
-3. Double-click **PodGlide.exe**. Keep the EXE, DLL and runtimeconfig JSON together.
-4. Click its information icon in the notification area (possibly under the hidden-icons arrow), then **Settings**.
-5. Connect your AirPods Pro in Windows Bluetooth settings. Choose their playback endpoint, and choose your PC speakers. Save.
-
-The included EXE is a small .NET Framework launcher that starts the compiled .NET 8 WPF DLL using the system's x64 dotnet host. Windows 11 normally includes .NET Framework 4.x. This is a framework-dependent build, not a self-contained or signed installer. The standard SDK build below produces a normal .NET app executable instead.
-
-## Everyday use
-
-- A rounded dark popup appears at the primary display's bottom right when a matching audio endpoint becomes active. It does not activate itself or steal keyboard focus. Left-click the tray icon to reopen it; right-click for Settings, Sound settings, and Exit.
-- Click an available AirPods or saved PC speakers button to make it the default playback output. A checkmark shows the current multimedia default.
-- The app changes all three playback roles: console, multimedia, communications. It checks the defaults after switching, and reports failures. Partial changes are possible if Windows rejects a later role; use Sound settings to correct them.
-- Popup closes after 20 seconds, pauses while hovered or keyboard-focused, and supports Escape and a dismiss button.
-- Connection auto-switch is **off by default**. Enable it in Settings if wanted. It triggers only on new active endpoints after the initial scan, not merely because the app started.
-- Disconnection shows a popup offering the saved speakers. The app does not force speaker switching on disconnect; Windows may choose a fallback itself.
-- Optional **Start when I sign in to Windows** uses only the current user's Registry Run entry. `--startup` launches quietly. Save in the final folder before enabling it; moving the folder requires disabling and re-enabling startup.
-- To refresh the output selectors after connecting hardware, close and reopen Settings.
-
-## Detection and implementation
-
-The app subscribes to Core Audio `IMMNotificationClient`, debounces notifications for 700 ms on the WPF dispatcher, and also rescans every five seconds for recovery after missed notifications or sleep. It enumerates **active render endpoints**, not microphones or a list of paired Bluetooth devices. A saved endpoint ID takes precedence over the editable name match (default: `AirPods`, case insensitive). Use explicit selection if several AirPods endpoints exist, or if your device has a custom name. Re-pairing can change endpoint IDs; select it again in Settings.
-
-Switching uses the undocumented Windows `IPolicyConfig::SetDefaultEndpoint` interface. Windows has no supported public equivalent for this system-wide behavior. It works on the tested Windows build but could change in future versions. Windows Sound settings remains available from the popup and tray.
-
-## Build with the .NET 8 SDK (recommended)
-
-Install the .NET 8 SDK x64 from Microsoft. In PowerShell in this folder:
+## Diagnostics
 
 ```powershell
-.\build.ps1
-# Output: .\publish\PodGlide.exe (requires .NET 8 Desktop Runtime x64)
-
-.\build.ps1 -SelfContained
-# Output: .\publish\PodGlide.exe (includes the runtime; larger download)
+# Wait for these GUI executables to finish before reading their reports.
+Start-Process .\ProGlide.exe -ArgumentList '--diagnose --report diagnostics.txt' -Wait
+Start-Process .\ProGlide.exe -ArgumentList '--test-animation --report opening.txt' -Wait
+Start-Process .\ProGlide.exe -ArgumentList '--test-animation --disconnect --report closing.txt' -Wait
+Start-Process .\ProGlide.exe -ArgumentList '--battery-scan --report battery.txt' -Wait
 ```
 
-Equivalent command:
+The battery test runs for 20 seconds. Diagnostics does not switch audio by default. Optional --test-current-switch re-selects the existing device only if all three roles already agree. Render helpers --render-test, --render-preferences and --render-about accept --report image.png and --light. Render samples are illustrations, not hardware observations.
 
-```powershell
-dotnet publish .\AirPodsSwitch.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o .\publish
-```
+## Technical limits and storage
 
-SDK publishing may need internet access to restore Windows runtime/build packs. The SDK build could not be executed here: no SDK was installed and the Microsoft installer download failed. The delivered DLL was compiled successfully against the installed .NET 8.0.32 runtime assemblies using the Windows C# compiler, then executed on .NET 8. `BuildSupport\build-local.ps1` reproduces that alternative build without an SDK; exit the running app first. It is not a replacement for normal SDK release validation.
+Detection uses active Windows playback endpoints, with notification debounce plus a recovery scan. It is not physical case-lid or ear-placement detection. The case animation plays cropped/resized frames from Apple's verified original AirPods Pro 3 product movie, forward or backward. It is not the private iPhone pairing animation. See ARTWORK-PROVENANCE.md for original URLs and source hashes.
 
-## Diagnostics and tests
+Default playback switching affects console, multimedia and communications roles through undocumented IPolicyConfig. Windows updates can affect it; partial role changes are reported. Per-app routing and exclusive audio can ignore the default change. No microphone settings are changed. Disconnecting offers speakers rather than forcing a fallback.
 
-```powershell
-dotnet .\AirPodsSwitch.dll --diagnose --report .\diagnostics.txt
-dotnet .\AirPodsSwitch.dll --render-test --report .\popup-test.png
-# Optional: invokes switching, only if all roles already use the same endpoint:
-dotnet .\AirPodsSwitch.dll --diagnose --test-current-switch --report .\switch-test.txt
-```
+Installed/direct-exe settings: %LOCALAPPDATA%\AirPodsSwitch\settings.xml. The historical folder/value name preserves compatibility. A portable.flag beside the EXE instead uses Data beside the app. Error logs stay local and are not size-capped. Do not include Data when sharing a used portable copy. Startup uses the current user's Run value AirPodsSwitch.
 
-The first command is read-only. The render test opens and closes a sample WPF popup with the production popup layout and button styling; it does not launch the tray controller or alter preferences. The optional switch test re-selects the current device for all three roles and verifies the result. It refuses if those roles differ. The launcher forwards only `--startup`; use the DLL commands for diagnostics.
-
-See **TEST-RESULTS.txt** for actual results and **LIMITATIONS.md** for remaining hardware checks. `popup-preview.png` is the rendered disconnected-state sample, not evidence of a Bluetooth connection.
-
-## Storage, troubleshooting, removal
-
-- Preferences: `%LOCALAPPDATA%\AirPodsSwitch\settings.xml`.
-- Errors: `%LOCALAPPDATA%\AirPodsSwitch\app.log`. Local logs may include endpoint identifiers; they are never uploaded. Log size is currently not capped.
-- Startup: `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, value `AirPodsSwitch`.
-- If startup does not run, check Windows Startup apps; Windows or organization policy can disable it.
-- If AirPods are absent, first connect them and verify they appear in Windows Sound settings, then reopen app Settings. Select the intended stereo endpoint rather than a hands-free endpoint when both appear.
-- If switching succeeds but an app keeps playing elsewhere, select System default in that app or restart playback. Per-app routing and exclusive-mode streams may ignore default-device changes.
-- To remove: turn off startup and save, choose Exit in the tray menu, delete the extracted folder, and optionally delete the app's LocalAppData folder. No service or driver is installed.
-
-## API references
-
-- https://learn.microsoft.com/en-us/windows/win32/coreaudio/mmdevice-api
-- https://learn.microsoft.com/en-us/windows/win32/api/mmdeviceapi/nn-mmdeviceapi-immnotificationclient
-- https://github.com/microsoft/psi/blob/master/Sources/Audio/Microsoft.Psi.Audio.Windows/ComInterop/Guids.cs
-- https://github.com/frgnca/AudioDeviceCmdlets/blob/master/SOURCE/PolicyConfigClient.cs (reference for undocumented interface identity/order)
-
-## Design and project license
-
-The charcoal and mint interface includes an AirPods Pro product image from Apple. See THIRD-PARTY-NOTICES.md for artwork and runtime attribution. Original application code is MIT licensed. The previous AirPodsSwitch name remains in some internal filenames and preference locations for update compatibility.
+The app is unsigned and targets Windows 11 x64. No clean second PC or fresh Windows account was available for validation. See RELEASE-NOTES.md and local test reports for actual verification. The original code is MIT licensed; artwork and protocol references have separate notices in THIRD-PARTY-NOTICES.md.

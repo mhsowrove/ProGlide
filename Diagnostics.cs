@@ -6,24 +6,53 @@ namespace AirPodsSwitch
 {
     public static class Diagnostics
     {
+        public static int ScanBattery(string[] args)
+        {
+            int index = Array.IndexOf(args, "--report"); if (index < 0 || index + 1 >= args.Length) return 2;
+            var report = new StringBuilder(); var app = new System.Windows.Application { ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown };
+            var sample = new byte[27]; sample[0] = 7; sample[1] = 25; sample[3] = 0x27; sample[4] = 0x20; sample[6] = 0x87; sample[7] = 0x49;
+            var decoded = BatteryMonitor.Decode(sample, -40);
+            if (decoded == null || decoded.Left != 80 || decoded.Right != 70 || decoded.Case != 90 || !decoded.CaseCharging) return 1;
+            sample[5] = 0x20; decoded = BatteryMonitor.Decode(sample, -40);
+            if (decoded == null || decoded.Left != 70 || decoded.Right != 80 || BatteryMonitor.Decode(new byte[2], -40) != null || BatteryMonitor.Decode(sample, -90) != null) return 1;
+            report.AppendLine("PASS: battery packet decoding, left/right ordering, charging flag, malformed and distant-packet rejection.");
+            using (var monitor = new BatteryMonitor())
+            {
+                monitor.SetEnabled(true); int seconds = 0; BatteryReading last = null;
+                var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+                timer.Tick += (s, e) => { monitor.EnsureScanning(); if (monitor.Current() != null) last = monitor.Current(); if (++seconds < 20) return; timer.Stop(); report.AppendLine("Scanner status: " + monitor.Status); report.AppendLine(last == null ? "No live nearby AirPods battery packet observed during 20-second test. Hardware readings remain unverified." : "LIVE NEARBY READING (device identity unverified): " + last.Model + " · " + last.Display()); app.Shutdown(); };
+                timer.Start(); app.Run();
+            }
+            File.WriteAllText(args[index + 1], report.ToString()); return 0;
+        }
         public static int TestAnimation(string[] args)
         {
             int index = Array.IndexOf(args, "--report"); if (index < 0 || index + 1 >= args.Length) return 2;
             var report = new StringBuilder(); int result = 0;
-            var app = new System.Windows.Application(); var view = new Popup("AirPods connected");
+            bool disconnect = args.Contains("--disconnect");
+            var app = new System.Windows.Application(); var view = new Popup(disconnect ? "AirPods disconnected" : "AirPods connected"); view.SetConnection(!disconnect);
             int stage = 0; var elapsed = System.Diagnostics.Stopwatch.StartNew();
             var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(90) };
             timer.Tick += (s, e) =>
             {
                 if (stage == 0)
                 {
-                    report.AppendLine("Windows client animations: " + System.Windows.SystemParameters.ClientAreaAnimation + "; PodGlide has its own animation preference.");
+                    report.AppendLine("Windows client animations: " + System.Windows.SystemParameters.ClientAreaAnimation + "; ProGlide has its own animation preference.");
                     report.AppendLine("Initial animation sample: offset=" + view.SlideOffset + ", scale=" + view.CardScale + ", opacity=" + view.Opacity);
+                    report.AppendLine("Lid intermediate progress: " + view.LidProgress + "; target: " + (disconnect ? "closed" : "open"));
                     stage = 1;
                 }
-                if (elapsed.ElapsedMilliseconds < 1200) return;
+                if (stage == 1 && elapsed.ElapsedMilliseconds >= 550)
+                {
+                    report.AppendLine("Lid moving progress: " + view.LidProgress);
+                    if (view.LidProgress <= .01 || view.LidProgress >= .99) { report.AppendLine("FAIL: no intermediate lid motion."); result = 1; }
+                    stage = 2;
+                }
+                if (elapsed.ElapsedMilliseconds < 2150) return;
                 if (Math.Abs(view.SlideOffset) > .01 || Math.Abs(view.CardScale - 1) > .01 || Math.Abs(view.Opacity - 1) > .01) { report.AppendLine("FAIL: reveal did not settle."); result = 1; }
                 else report.AppendLine("PASS: spring reveal settled at its final position, scale and opacity.");
+                if (Math.Abs(view.LidProgress - (disconnect ? 0 : 1)) > .01) { report.AppendLine("FAIL: lid did not reach its state."); result = 1; }
+                else report.AppendLine("PASS: lid reached " + (disconnect ? "closed" : "open") + " state; badge: " + view.Connection.Text);
                 timer.Stop(); view.Animate = false; view.Close();
             };
             view.Loaded += (s, e) => { elapsed.Restart(); timer.Start(); };
@@ -32,7 +61,7 @@ namespace AirPodsSwitch
         public static int RenderAbout(string[] args)
         {
             int index = Array.IndexOf(args, "--report"); if (index < 0 || index + 1 >= args.Length) return 2;
-            var app = new System.Windows.Application(); var view = new AboutWindow(); view.Show();
+            var app = new System.Windows.Application(); Theme.Apply(args.Contains("--light") ? "Light" : "Dark"); var view = new AboutWindow(); view.Show();
             app.Dispatcher.Invoke(new Action(() => { }), System.Windows.Threading.DispatcherPriority.Render); view.UpdateLayout();
             var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)Math.Ceiling(view.ActualWidth), (int)Math.Ceiling(view.ActualHeight), 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
             bitmap.Render(view); var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder(); encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
@@ -45,6 +74,9 @@ namespace AirPodsSwitch
             using (var controller = new Controller(app, true))
             {
                 controller.Settings();
+                if (args.Contains("--cycle-themes")) { controller.AppearanceSelector.SelectedItem = "Light"; controller.AppearanceSelector.SelectedItem = "Dark"; }
+                if (args.Contains("--light")) controller.AppearanceSelector.SelectedItem = "Light";
+                if (args.Contains("--dark")) controller.AppearanceSelector.SelectedItem = "Dark";
                 var view = controller.PreferencesWindow;
                 app.Dispatcher.Invoke(new Action(() => { }), System.Windows.Threading.DispatcherPriority.Render);
                 view.UpdateLayout();
@@ -59,12 +91,13 @@ namespace AirPodsSwitch
             int index = Array.IndexOf(args, "--report");
             if (index < 0 || index + 1 >= args.Length) return 2;
             var app = new System.Windows.Application();
+            Theme.Apply(args.Contains("--light") ? "Light" : "Dark");
             bool connected = args.Contains("--connected-sample");
-            var view = new Popup(connected ? "AirPods connected" : "Your sound, one tap away");
+            var view = new Popup(connected ? "AirPods connected" : args.Contains("--disconnected-sample") ? "AirPods disconnected" : "Your sound, one tap away");
             view.Animate = false;
             view.Status.Text = connected ? "Choose where your next moment plays." : "Connect your AirPods, or keep listening on your PC.";
-            view.Connection.Text = connected ? "●  CONNECTED" : "○  NOT CONNECTED";
-            view.Connection.Foreground = connected ? Theme.Mint : Theme.Muted;
+            view.SetConnection(connected);
+            view.Battery.Text = "Battery · Open the case nearby to refresh";
             view.Outputs.Children.Add(Theme.Device("AirPods", connected ? "Playing here · AirPods Pro" : "Connect your AirPods to use this output", true, connected, connected, () => { }));
             view.Outputs.Children.Add(Theme.Device("PC speakers", connected ? "Speakers (Realtek Audio)" : "Playing here · Speakers (Realtek Audio)", false, !connected, true, () => { }));
             var preferences = Theme.IconButton("Preferences", "\uE713", () => { }); preferences.Width = 160; preferences.Margin = new System.Windows.Thickness(0, 0, 8, 0); view.Footer.Children.Add(preferences);
